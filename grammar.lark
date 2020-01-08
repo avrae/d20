@@ -6,7 +6,7 @@
 COMMENT.-1: /.+/
 
 // math and operators, MDAS
-?num: comparison
+num: comparison
 
 ?comparison: a_num (COMP_OPERATOR a_num)*
 COMP_OPERATOR: "<" | ">" | "==" | ">=" | "<=" | "!="
