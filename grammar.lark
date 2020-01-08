@@ -1,0 +1,48 @@
+// Dice rolling grammar - Avrae spec
+
+?expr: num COMMENT?
+
+// comments are given -1 priority - only match comment if no other possibilities
+COMMENT.-1: /.+/
+
+// math and operators, MDAS
+?num: comparison
+
+?comparison: a_num (COMP_OPERATOR a_num)*
+COMP_OPERATOR: "<" | ">" | "==" | ">=" | "<=" | "!="
+
+?a_num: [a_num A_OP] m_num
+A_OP: "+" | "-"
+
+?m_num: [m_num M_OP] u_num
+M_OP: "*" | "/" | "//" | "%"
+
+?u_num: numexpr | U_OP u_num
+U_OP: "+" | "-"
+
+// numbers
+?numexpr: (set | INTEGER | DECIMAL) ANNOTATION*
+
+ANNOTATION: /\[.*?\]/
+
+?set: setexpr (OPERATOR selector)*
+
+OPERATOR: "k" | "mi" | "ma" | "p"
+
+?setexpr: "(" [num ("," num)*] ")"
+       | dice
+
+// dice
+dice: INTEGER? "d" INTEGER (DICE_OPERATOR selector)*
+
+DICE_OPERATOR: OPERATOR | "rr" | "ro" | "ra" | "e"
+
+selector: SELTYPE? INTEGER
+
+SELTYPE: "l" | "h" | "<" | ">"
+
+// useful constants
+%import common.WS
+%import common.INT -> INTEGER
+%import common.DECIMAL
+%ignore WS
