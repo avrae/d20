@@ -18,19 +18,19 @@ u_num: numexpr | U_OP u_num
 U_OP: "+" | "-"
 
 // numbers
-numexpr: (set | literal) ANNOTATION*
+numexpr: (dice | set | literal) ANNOTATION*
 
 ANNOTATION: /\[.*?\]/
 
 literal: INTEGER | DECIMAL
 
+// sets
 set: setexpr set_op*
 
 set_op: OPERATOR selector
 OPERATOR: "k" | "mi" | "ma" | "p"
 
 setexpr: "(" [num ("," num)*] ")"
-       | dice
 
 // dice
 dice: diceexpr dice_op*
