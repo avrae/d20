@@ -2,6 +2,12 @@ import abc
 import random
 
 
+class Expression:  # expr
+    def __init__(self, roll, comment=None):
+        self.roll = roll
+        self.comment = comment
+
+
 class Number(abc.ABC):  # num
     @property
     def numval(self):
@@ -86,6 +92,10 @@ class BinOp(Number):  # a_num, m_num
         self._left = left
         self._right = right
 
+    @property
+    def numval(self):
+        return self.BINARY_OPS[self._op](self._left.numval, self._right.numval)
+
 
 class SetOperator:  # set_op, dice_op
     def __init__(self, op, sel):
@@ -121,9 +131,9 @@ class OperatedSet(Number):  # set
 
 
 class NumberSet(Number):  # setexpr
-    def __init__(self, values):
+    def __init__(self, *values):
         """
-        :type values: list of Number
+        :type values: Number
         """
         self._values = values
 
@@ -146,15 +156,15 @@ class OperatedDice(OperatedSet):  # dice
 
 
 class Dice(NumberSet):  # diceexpr
-    def __init__(self, values):
+    def __init__(self, *values):
         """
-        :type values: list of Die
+        :type values: Die
         """
-        super().__init__(values)
+        super().__init__(*values)
 
     @classmethod
     def new(cls, num, size):
-        return cls([Die.new(size) for _ in range(num)])
+        return cls(*[Die.new(size) for _ in range(num)])
 
 
 class Die(Number):  # part of diceexpr

@@ -5,7 +5,7 @@ expr: num
 // math and operators, MDAS
 num: comparison
 
-comparison: a_num (COMP_OPERATOR a_num)*
+comparison: [comparison COMP_OPERATOR] a_num
 COMP_OPERATOR: "<" | ">" | "==" | ">=" | "<=" | "!="
 
 a_num: [a_num A_OP] m_num
@@ -30,7 +30,8 @@ set: setexpr set_op*
 set_op: OPERATOR selector
 OPERATOR: "k" | "mi" | "ma" | "p"
 
-setexpr: "(" [num ("," num)*] ")"
+setexpr: "(" [num ("," num)* comma?] ")"
+comma: ","  // used to determine when to split tree using inlining rules
 
 // dice
 dice: diceexpr dice_op*
