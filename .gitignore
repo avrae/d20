@@ -125,4 +125,7 @@ dmypy.json
 .pyre/
 
 .idea/
+testenv/
+tree.png
+.DS_Store
 

@@ -41,7 +41,7 @@ class RollTransformer(Transformer):
         return OperatedSet(*opset)
 
     def set_op(self, opsel):
-        return SetOperator(*opsel)
+        return SetOperator.new(*opsel)
 
     def setexpr(self, the_set):
         return NumberSet(*the_set)
@@ -53,12 +53,16 @@ class RollTransformer(Transformer):
         return OperatedDice(*opdice)
 
     def dice_op(self, opsel):
-        return SetOperator(*opsel)
+        return SetOperator.new(*opsel)
 
     def diceexpr(self, dice):
+        if len(dice) == 1:
+            return Dice.new(1, *dice)
         return Dice.new(*dice)
 
     def selector(self, sel):
+        if len(sel) == 1:
+            return SetSelector(None, *sel)
         return SetSelector(*sel)
 
 

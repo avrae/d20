@@ -31,7 +31,7 @@ literal: INTEGER | DECIMAL
 ?set: setexpr set_op*
 
 set_op: OPERATOR selector
-OPERATOR: "k" | "mi" | "ma" | "p"
+OPERATOR: "k" | "p"
 
 ?setexpr: "(" [num ("," num)* comma?] ")"
 comma: ","  // used to determine when to split tree
@@ -40,7 +40,7 @@ comma: ","  // used to determine when to split tree
 ?dice: diceexpr dice_op*
 
 dice_op: DICE_OPERATOR selector
-DICE_OPERATOR: OPERATOR | "rr" | "ro" | "ra" | "e"
+DICE_OPERATOR: OPERATOR | "rr" | "ro" | "ra" | "e" | "mi" | "ma"
 
 diceexpr: INTEGER? "d" INTEGER
 

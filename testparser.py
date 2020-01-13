@@ -9,6 +9,7 @@ Test syntaxes:
 """
 
 from lark import Lark
+from lark.tree import pydot__tree_to_png
 
 with open("grammar.lark") as f:
     grammar = f.read()
@@ -19,3 +20,4 @@ while True:
     result = parser.parse(input())
     print(result.pretty())
     print(result)
+    pydot__tree_to_png(result, 'tree.png')
