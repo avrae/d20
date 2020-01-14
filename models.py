@@ -9,6 +9,11 @@ class Expression:  # expr
         self.roll = roll
         self.comment = comment
 
+    def __str__(self):
+        if self.comment:
+            return f"{str(self.roll)} {self.comment}"
+        return str(self.roll)
+
 
 class Number(abc.ABC):  # num
     __slots__ = ("_kept",)
@@ -34,6 +39,9 @@ class Number(abc.ABC):  # num
     def __float__(self):
         return float(self.numval)
 
+    def __str__(self):
+        raise NotImplementedError
+
 
 class AnnotatedNumber(Number):  # numexpr
     __slots__ = ("_value", "_annotations")
@@ -50,6 +58,9 @@ class AnnotatedNumber(Number):  # numexpr
     @property
     def numval(self):
         return self._value.numval
+
+    def __str__(self):
+        return f"{str(self._value)} {''.join(self._annotations)}"
 
 
 class Literal(Number):  # literal
@@ -76,6 +87,12 @@ class Literal(Number):  # literal
         """
         self._values.append(value)
 
+    def __str__(self):
+        history = ' -> '.join(map(str, self._values))
+        if self._exploded:
+            return f"{history}!"
+        return history
+
 
 class UnOp(Number):  # u_num
     __slots__ = ("_op", "_value")
@@ -97,6 +114,9 @@ class UnOp(Number):  # u_num
     @property
     def numval(self):
         return self.UNARY_OPS[self._op](self._value.numval)
+
+    def __str__(self):
+        return f"{self._op}{str(self._value)}"
 
 
 class BinOp(Number):  # a_num, m_num
@@ -131,6 +151,9 @@ class BinOp(Number):  # a_num, m_num
     @property
     def numval(self):
         return self.BINARY_OPS[self._op](self._left.numval, self._right.numval)
+
+    def __str__(self):
+        return f"{str(self._left)} {self._op} {str(self._right)}"
 
 
 # noinspection PyUnresolvedReferences
@@ -268,6 +291,9 @@ class SetOperator:  # set_op, dice_op
             if die.numval > the_max:
                 die.force_value(the_max)
 
+    def __str__(self):
+        return "".join([f"{self._op}{str(sel)}" for sel in self._sels])
+
 
 class SetSelector:  # selector
     __slots__ = ("_cat", "_num")
@@ -319,9 +345,43 @@ class SetSelector:  # selector
     def literal(self, target):
         return [n for n in target.keptvalues if n.numval == self._num]
 
+    def __str__(self):
+        if self._cat:
+            return f"{self._cat}{self._num}"
+        return str(self._num)
 
-class OperatedSet(Number):  # set
-    __slots__ = ("_value", "_operations", "_final")
+
+class NumberSet(Number):  # setexpr
+    __slots__ = ("_values",)
+
+    def __init__(self, values):
+        """
+        :type values: list of Number
+        """
+        super().__init__()
+        self._values = list(values)
+
+    @property
+    def numval(self):
+        return sum(n.numval for n in self.keptvalues)
+
+    @property
+    def values(self):
+        return self._values
+
+    @property
+    def keptvalues(self):
+        return [n for n in self.values if n.kept]
+
+    def __str__(self):
+        out = f"{', '.join([str(v) for v in self._values])}"
+        if len(self._values) == 1:
+            return f"({out},)"
+        return f"({out})"
+
+
+class OperatedSet(NumberSet):  # set
+    __slots__ = ("_child", "_operations", "_final")
 
     def __init__(self, the_set, *operations, final=False):
         """
@@ -329,8 +389,8 @@ class OperatedSet(Number):  # set
         :type operations: SetOperator
         :type final: bool
         """
-        super().__init__()
-        self._value = the_set
+        super().__init__(the_set.values)
+        self._child = the_set
         self._operations = operations
         self._final = final
 
@@ -338,7 +398,7 @@ class OperatedSet(Number):  # set
     def numval(self):
         if not self._final:
             self.run_ops()
-        return self._value.numval
+        return super().numval
 
     def _simplify_operations(self):
         """Simplifies expressions like k1k2k3 into k(1,2,3)."""
@@ -360,64 +420,57 @@ class OperatedSet(Number):  # set
         self._simplify_operations()
 
         for op in self._operations:
-            op.operate(self._value)
+            op.operate(self._child)
         self._final = True
 
-
-class NumberSet(Number):  # setexpr
-    __slots__ = ("_values",)
-
-    def __init__(self, *values):
-        """
-        :type values: Number
-        """
-        super().__init__()
-        self._values = list(values)
-
-    @property
-    def numval(self):
-        return sum(n.numval for n in self._values if n.kept)
-
-    @property
-    def values(self):
-        return self._values
-
-    @property
-    def keptvalues(self):
-        return [n for n in self.values if n.kept]
+    def __str__(self):
+        return f"{str(self._child)}{''.join([str(op) for op in self._operations])}"
 
 
 class OperatedDice(OperatedSet):  # dice
-    __slots__ = ()
+    __slots__ = ("_num", "_size")
 
-    def __init__(self, the_set, *operations, final=False):
+    def __init__(self, the_dice, *operations, final=False):
         """
-        :type the_set: Dice
+        :type the_dice: Dice
         :type operations: SetOperator
         :type final: bool
         """
-        super().__init__(the_set, *operations, final=final)
+        super().__init__(the_dice, *operations, final=final)
+        self._num = the_dice.num
+        self._size = the_dice.size
 
 
 class Dice(NumberSet):  # diceexpr
     __slots__ = ("_num", "_size")
 
-    def __init__(self, num, size, *values):
+    def __init__(self, num, size, values):
         """
         :type num: int
         :type size: int
-        :type values: Die
+        :type values: list of Die
         """
-        super().__init__(*values)
+        super().__init__(values)
         self._num = num
         self._size = size
 
+    @property
+    def num(self):
+        return self._num
+
+    @property
+    def size(self):
+        return self._size
+
     @classmethod
     def new(cls, num, size):
-        return cls(num, size, *[Die.new(size) for _ in range(num)])
+        return cls(num, size, [Die.new(size) for _ in range(num)])
 
     def roll_another(self):
         self._values.append(Die.new(self._size))
+
+    def __str__(self):
+        return f"{self._num}d{self._size}"
 
 
 class Die(Number):  # part of diceexpr
@@ -459,3 +512,6 @@ class Die(Number):  # part of diceexpr
     def force_value(self, new_value):
         if self._rolled_values:
             self._rolled_values[-1].update(new_value)
+
+    def __str__(self):
+        return ", ".join([str(v) for v in self._rolled_values])

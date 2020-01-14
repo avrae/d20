@@ -44,7 +44,7 @@ class RollTransformer(Transformer):
         return SetOperator.new(*opsel)
 
     def setexpr(self, the_set):
-        return NumberSet(*the_set)
+        return NumberSet(the_set)
 
     def comma(self, _):
         raise Discard
@@ -77,5 +77,5 @@ if __name__ == '__main__':
         print(result.pretty())
         print(result)
         out = RollTransformer(visit_tokens=True).transform(result)
-        print(out)
         print(out.roll.numval)
+        print(str(out))

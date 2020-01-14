@@ -33,7 +33,7 @@ literal: INTEGER | DECIMAL
 set_op: OPERATOR selector
 OPERATOR: "k" | "p"
 
-?setexpr: "(" [num ("," num)* comma?] ")"
+setexpr: "(" [num ("," num)* comma?] ")"
 comma: ","  // used to determine when to split tree
 
 // dice
