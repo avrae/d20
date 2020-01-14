@@ -19,6 +19,9 @@ class RollTransformer(Transformer):
     def expr(self, num_comment):
         return Expression(*num_comment)
 
+    def par_num(self, num):
+        return Parenthetical(*num)
+
     def comparison(self, binop):
         return BinOp(*binop)
 
@@ -45,9 +48,6 @@ class RollTransformer(Transformer):
 
     def setexpr(self, the_set):
         return NumberSet(the_set)
-
-    def comma(self, _):
-        raise Discard
 
     def dice(self, opdice):
         return OperatedDice(*opdice)

@@ -6,7 +6,8 @@ expr: num COMMENT?
 COMMENT.-1: /.+/
 
 // math and operators, MDAS
-?num: comparison
+?num: comparison | par_num
+par_num: "(" num ")"
 
 ?comparison: [comparison COMP_OPERATOR] a_num
 COMP_OPERATOR: "<" | ">" | "==" | ">=" | "<=" | "!="
@@ -33,8 +34,9 @@ literal: INTEGER | DECIMAL
 set_op: OPERATOR selector
 OPERATOR: "k" | "p"
 
-setexpr: "(" [num ("," num)* comma?] ")"
-comma: ","  // used to determine when to split tree
+setexpr: "()"
+       | "(" num "," ")"
+       | "(" [num ("," num)+ ","?] ")"
 
 // dice
 ?dice: diceexpr dice_op*

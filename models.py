@@ -94,6 +94,21 @@ class Literal(Number):  # literal
         return history
 
 
+class Parenthetical(Number):
+    __slots__ = ("_value",)
+
+    def __init__(self, value):
+        super().__init__()
+        self._value = value
+
+    @property
+    def numval(self):
+        return self._value.numval
+
+    def __str__(self):
+        return f"({str(self._value)})"
+
+
 class UnOp(Number):  # u_num
     __slots__ = ("_op", "_value")
 
