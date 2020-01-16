@@ -1,6 +1,7 @@
 import abc
 import random
-import diceast as ast
+
+__all__ = ("Number", "Literal", "UnOp", "BinOp", "Parenthetical", "Set", "Dice", "Die", "SetOperator", "SetSelector")
 
 
 class Number(abc.ABC):  # num
@@ -35,6 +36,11 @@ class Number(abc.ABC):  # num
     def drop(self):
         self.kept = False
 
+    @property
+    def children(self):
+        """Returns a list of Numbers that this Number is a parent of."""
+        raise NotImplementedError
+
     def __int__(self):
         return int(self.number)
 
@@ -63,6 +69,10 @@ class Literal(Number):
     @property
     def set(self):
         return [self]
+
+    @property
+    def children(self):
+        return []
 
     def explode(self):
         self.exploded = True
@@ -105,6 +115,10 @@ class UnOp(Number):
     def set(self):
         return [Literal(self.number)]
 
+    @property
+    def children(self):
+        return [self.value]
+
     def __str__(self):
         return f"{self.op}{str(self.value)}"
 
@@ -144,7 +158,11 @@ class BinOp(Number):
 
     @property
     def set(self):
-        return [self.number]
+        return [Literal(self.number)]
+
+    @property
+    def children(self):
+        return [self.left, self.right]
 
     def __str__(self):
         return f"{str(self.left)} {self.op} {str(self.right)}"
@@ -172,6 +190,10 @@ class Parenthetical(Number):
     def set(self):
         return self.value.set
 
+    @property
+    def children(self):
+        return self.value.children
+
     def __str__(self):
         return f"({str(self.value)}){''.join([str(op) for op in self.operations])}"
 
@@ -194,6 +216,10 @@ class Set(Number):
     def set(self):
         return self.values
 
+    @property
+    def children(self):
+        return self.values
+
     def __str__(self):
         out = f"{', '.join([str(v) for v in self.values])}"
         ops = ''.join([str(op) for op in self.operations])
@@ -203,25 +229,27 @@ class Set(Number):
 
 
 class Dice(Set):
-    __slots__ = ("num", "size")
+    __slots__ = ("num", "size", "_context")
 
-    def __init__(self, num, size, values, operations=None):
+    def __init__(self, num, size, values, operations=None, context=None):
         """
         :type num: int
         :type size: int
         :type values: list of Die
         :type operations: list of SetOperator
+        :type context: dice.RollContext
         """
         super().__init__(values, operations)
         self.num = num
         self.size = size
+        self._context = context
 
     @classmethod
-    def new(cls, num, size):
-        return cls(num, size, [Die.new(size) for _ in range(num)], [])
+    def new(cls, num, size, context=None):
+        return cls(num, size, [Die.new(size, context=context) for _ in range(num)], context=context)
 
     def roll_another(self):
-        self.values.append(Die.new(self.size))
+        self.values.append(Die.new(self.size, context=self._context))
 
     def __str__(self):
         return f"{self.num}d{self.size}{''.join([str(op) for op in self.operations])} " \
@@ -229,20 +257,22 @@ class Dice(Set):
 
 
 class Die(Number):  # part of diceexpr
-    __slots__ = ("size", "values")
+    __slots__ = ("size", "values", "_context")
 
-    def __init__(self, size, values):
+    def __init__(self, size, values, context=None):
         """
         :type size: int
         :type values: list of Literal
+        :type context: dice.RollContext
         """
         super().__init__()
         self.size = size
         self.values = values
+        self._context = context
 
     @classmethod
-    def new(cls, size):
-        inst = cls(size, [])
+    def new(cls, size, context=None):
+        inst = cls(size, [], context=context)
         inst._add_roll()
         return inst
 
@@ -254,7 +284,13 @@ class Die(Number):  # part of diceexpr
     def set(self):
         return [self.values[-1]]
 
+    @property
+    def children(self):
+        return []
+
     def _add_roll(self):
+        if self._context:
+            self._context.count_roll()
         n = Literal(random.randrange(self.size) + 1)  # 200ns faster than randint(1, self._size)
         self.values.append(n)
 
@@ -452,76 +488,3 @@ class SetSelector:  # selector
         if self.cat:
             return f"{self.cat}{self.num}"
         return str(self.num)
-
-
-# ==== roller ====
-# noinspection PyMethodMayBeStatic
-class Roller:
-    def __init__(self):
-        self.nodes = {
-            ast.Expression: self._eval_expression,
-            ast.AnnotatedNumber: self._eval_annotatednumber,
-            ast.Literal: self._eval_literal,
-            ast.Parenthetical: self._eval_parenthetical,
-            ast.UnOp: self._eval_unop,
-            ast.BinOp: self._eval_binop,
-            ast.OperatedSet: self._eval_operatedset,
-            ast.NumberSet: self._eval_numberset,
-            ast.OperatedDice: self._eval_operateddice,
-            ast.Dice: self._eval_dice
-        }
-
-    def roll(self, expr):
-        dice_tree = ast.parser.parse(expr)
-        print(str(expr))
-        result = self._eval(dice_tree)
-        print(str(result))
-        print(result.number)
-        return result  # todo rollresult
-
-    def _eval(self, node):
-        handler = self.nodes[type(node)]
-        return handler(node)
-
-    def _eval_expression(self, node):
-        return self._eval(node.roll)
-
-    def _eval_annotatednumber(self, node):
-        target = self._eval(node.value)
-        target.annotation = ''.join(node.annotations)
-        return target
-
-    def _eval_literal(self, node):
-        return Literal(node.value)
-
-    def _eval_parenthetical(self, node):
-        return Parenthetical(self._eval(node.value))
-
-    def _eval_unop(self, node):
-        return UnOp(node.op, self._eval(node.value))
-
-    def _eval_binop(self, node):
-        return BinOp(self._eval(node.left), node.op, self._eval(node.right))
-
-    def _eval_operatedset(self, node):
-        target = self._eval(node.value)
-        for op in node.operations:
-            the_op = SetOperator.from_ast(op)
-            the_op.operate(target)
-            target.operations.append(the_op)
-        return target
-
-    def _eval_numberset(self, node):
-        return Set([self._eval(n) for n in node.values])
-
-    def _eval_operateddice(self, node):
-        return self._eval_operatedset(node)
-
-    def _eval_dice(self, node):
-        return Dice.new(node.num, node.size)
-
-
-if __name__ == '__main__':
-    roller = Roller()
-    while True:
-        roll_result = roller.roll(input())
