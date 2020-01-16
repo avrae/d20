@@ -5,9 +5,8 @@ expr: num COMMENT?
 // comments are given -1 priority - only match comment if no other possibilities
 COMMENT.-1: /.+/
 
-// math and operators, MDAS
-?num: comparison | par_num
-par_num: "(" num ")"
+// math and operators, PMDAS
+?num: comparison
 
 ?comparison: [comparison COMP_OPERATOR] a_num
 COMP_OPERATOR: "<" | ">" | "==" | ">=" | "<=" | "!="
@@ -34,9 +33,8 @@ literal: INTEGER | DECIMAL
 set_op: OPERATOR selector
 OPERATOR: "k" | "p"
 
-setexpr: "()"
-       | "(" num "," ")"
-       | "(" [num ("," num)+ ","?] ")"
+setexpr: "(" [num ("," num)* comma?] ")"
+comma: ","
 
 // dice
 ?dice: diceexpr dice_op*

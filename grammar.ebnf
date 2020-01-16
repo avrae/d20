@@ -3,8 +3,7 @@
 expr: num
 
 // math and operators, MDAS
-num: comparison | par_num
-par_num: "(" num ")"
+num: comparison
 
 comparison: [comparison COMP_OPERATOR] a_num
 COMP_OPERATOR: "<" | ">" | "==" | ">=" | "<=" | "!="
@@ -31,9 +30,8 @@ set: setexpr set_op*
 set_op: OPERATOR selector
 OPERATOR: "k" | "p"
 
-setexpr: "()"
-       | "(" num "," ")"
-       | "(" [num ("," num)+ ","?] ")"
+setexpr: "(" [num ("," num)* comma?] ")"
+comma: ","
 
 // dice
 dice: diceexpr dice_op*
