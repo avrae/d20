@@ -21,9 +21,11 @@ class Number(abc.ABC):  # num
         return sum(n.number for n in self.keptset)
 
     @property
-    def keptnumber(self):
+    def total(self):
         """
         Returns the numerical value of this object with respect to whether it's kept.
+        Generally, this is preferred to use over ``number``, as this will return 0 if
+        the number node was dropped.
 
         :rtype: int or float
         """
@@ -40,9 +42,18 @@ class Number(abc.ABC):  # num
 
     @property
     def keptset(self):
+        """
+        Returns the set representation of this object, but only including children whose values
+        were not dropped.
+
+        :rtype: list of Number
+        """
         return [n for n in self.set if n.kept]
 
     def drop(self):
+        """
+        Makes the value of this Number node not count towards a total.
+        """
         self.kept = False
 
     @property
@@ -51,10 +62,10 @@ class Number(abc.ABC):  # num
         raise NotImplementedError
 
     def __int__(self):
-        return int(self.keptnumber)
+        return int(self.total)
 
     def __float__(self):
-        return float(self.keptnumber)
+        return float(self.total)
 
     def __str__(self):
         raise NotImplementedError
@@ -118,7 +129,7 @@ class UnOp(Number):
 
     @property
     def number(self):
-        return self.UNARY_OPS[self.op](self.value.keptnumber)
+        return self.UNARY_OPS[self.op](self.value.total)
 
     @property
     def set(self):
@@ -163,7 +174,7 @@ class BinOp(Number):
 
     @property
     def number(self):
-        return self.BINARY_OPS[self.op](self.left.keptnumber, self.right.keptnumber)
+        return self.BINARY_OPS[self.op](self.left.total, self.right.total)
 
     @property
     def set(self):
@@ -196,8 +207,8 @@ class Parenthetical(Number):
         return self.value.number
 
     @property
-    def keptnumber(self):
-        return self.value.keptnumber if self.kept else 0
+    def total(self):
+        return self.value.total if self.kept else 0
 
     @property
     def set(self):
@@ -291,7 +302,7 @@ class Die(Number):  # part of diceexpr
 
     @property
     def number(self):
-        return self.values[-1].keptnumber
+        return self.values[-1].total
 
     @property
     def set(self):
@@ -483,19 +494,19 @@ class SetSelector:  # selector
         return set(selectors[self.cat](target))
 
     def lowestn(self, target):
-        return sorted(target.keptset, key=lambda n: n.keptnumber)[:self.num]
+        return sorted(target.keptset, key=lambda n: n.total)[:self.num]
 
     def highestn(self, target):
-        return sorted(target.keptset, key=lambda n: n.keptnumber, reverse=True)[:self.num]
+        return sorted(target.keptset, key=lambda n: n.total, reverse=True)[:self.num]
 
     def lessthan(self, target):
-        return [n for n in target.keptset if n.keptnumber < self.num]
+        return [n for n in target.keptset if n.total < self.num]
 
     def morethan(self, target):
-        return [n for n in target.keptset if n.keptnumber > self.num]
+        return [n for n in target.keptset if n.total > self.num]
 
     def literal(self, target):
-        return [n for n in target.keptset if n.keptnumber == self.num]
+        return [n for n in target.keptset if n.total == self.num]
 
     def __str__(self):
         if self.cat:
