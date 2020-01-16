@@ -21,6 +21,15 @@ class Number(abc.ABC):  # num
         return sum(n.number for n in self.keptset)
 
     @property
+    def keptnumber(self):
+        """
+        Returns the numerical value of this object with respect to whether it's kept.
+
+        :rtype: int or float
+        """
+        return self.number if self.kept else 0
+
+    @property
     def set(self):
         """
         Returns the set representation of this object.
@@ -42,10 +51,10 @@ class Number(abc.ABC):  # num
         raise NotImplementedError
 
     def __int__(self):
-        return int(self.number)
+        return int(self.keptnumber)
 
     def __float__(self):
-        return float(self.number)
+        return float(self.keptnumber)
 
     def __str__(self):
         raise NotImplementedError
@@ -109,11 +118,11 @@ class UnOp(Number):
 
     @property
     def number(self):
-        return self.UNARY_OPS[self.op](self.value.number)
+        return self.UNARY_OPS[self.op](self.value.keptnumber)
 
     @property
     def set(self):
-        return [Literal(self.number)]
+        return [self]
 
     @property
     def children(self):
@@ -154,11 +163,11 @@ class BinOp(Number):
 
     @property
     def number(self):
-        return self.BINARY_OPS[self.op](self.left.number, self.right.number)
+        return self.BINARY_OPS[self.op](self.left.keptnumber, self.right.keptnumber)
 
     @property
     def set(self):
-        return [Literal(self.number)]
+        return [self]
 
     @property
     def children(self):
@@ -185,6 +194,10 @@ class Parenthetical(Number):
     @property
     def number(self):
         return self.value.number
+
+    @property
+    def keptnumber(self):
+        return self.value.keptnumber if self.kept else 0
 
     @property
     def set(self):
@@ -278,7 +291,7 @@ class Die(Number):  # part of diceexpr
 
     @property
     def number(self):
-        return self.values[-1].number
+        return self.values[-1].keptnumber
 
     @property
     def set(self):
@@ -470,19 +483,19 @@ class SetSelector:  # selector
         return set(selectors[self.cat](target))
 
     def lowestn(self, target):
-        return sorted(target.keptset, key=lambda n: n.number)[:self.num]
+        return sorted(target.keptset, key=lambda n: n.keptnumber)[:self.num]
 
     def highestn(self, target):
-        return sorted(target.keptset, key=lambda n: n.number, reverse=True)[:self.num]
+        return sorted(target.keptset, key=lambda n: n.keptnumber, reverse=True)[:self.num]
 
     def lessthan(self, target):
-        return [n for n in target.keptset if n.number < self.num]
+        return [n for n in target.keptset if n.keptnumber < self.num]
 
     def morethan(self, target):
-        return [n for n in target.keptset if n.number > self.num]
+        return [n for n in target.keptset if n.keptnumber > self.num]
 
     def literal(self, target):
-        return [n for n in target.keptset if n.number == self.num]
+        return [n for n in target.keptset if n.keptnumber == self.num]
 
     def __str__(self):
         if self.cat:

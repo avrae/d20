@@ -41,7 +41,7 @@ class Roller:
         print(str(expr))
         result = self._eval(dice_tree)
         print(str(result))
-        print(result.number)
+        print(result.keptnumber)
         return result  # todo rollresult
 
     def _eval(self, node):
