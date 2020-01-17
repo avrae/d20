@@ -1,7 +1,12 @@
 import abc
 import random
 
-__all__ = ("Number", "Literal", "UnOp", "BinOp", "Parenthetical", "Set", "Dice", "Die", "SetOperator", "SetSelector")
+import errors
+
+__all__ = (
+    "Number", "Expression", "Literal", "UnOp", "BinOp", "Parenthetical", "Set", "Dice", "Die",
+    "SetOperator", "SetSelector"
+)
 
 
 class Number(abc.ABC):  # num
@@ -69,6 +74,35 @@ class Number(abc.ABC):  # num
 
     def __str__(self):
         raise NotImplementedError
+
+
+class Expression(Number):
+    __slots__ = ("roll", "comment")
+
+    def __init__(self, roll, comment):
+        """
+        :type roll: Number
+        """
+        super().__init__()
+        self.roll = roll
+        self.comment = comment
+
+    @property
+    def number(self):
+        return self.roll.number
+
+    @property
+    def set(self):
+        return self.roll.set
+
+    @property
+    def children(self):
+        return [self.roll]
+
+    def __str__(self):
+        if self.comment:
+            return f"{str(self.roll)} {self.comment}"
+        return str(self.roll)
 
 
 class Literal(Number):
@@ -174,7 +208,10 @@ class BinOp(Number):
 
     @property
     def number(self):
-        return self.BINARY_OPS[self.op](self.left.total, self.right.total)
+        try:
+            return self.BINARY_OPS[self.op](self.left.total, self.right.total)
+        except ZeroDivisionError:
+            raise errors.RollValueError("Cannot divide by zero.")
 
     @property
     def set(self):
@@ -313,6 +350,8 @@ class Die(Number):  # part of diceexpr
         return []
 
     def _add_roll(self):
+        if self.size < 1:
+            raise errors.RollValueError("Cannot roll a 0-sided die.")
         if self._context:
             self._context.count_roll()
         n = Literal(random.randrange(self.size) + 1)  # 200ns faster than randint(1, self._size)

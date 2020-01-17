@@ -1,6 +1,7 @@
 import diceast as ast
 from errors import *
 from models import *
+from stringifiers import MarkdownStringifier
 
 
 class RollContext:
@@ -18,10 +19,29 @@ class RollContext:
             raise TooManyRolls("Too many dice rolled.")
 
 
+class RollResult:
+    def __init__(self, the_roll, stringifier):
+        """
+        :type the_roll: models.Expression
+        :type stringifier: stringifiers.Stringifier
+        """
+        self.roll = the_roll
+        self.total = the_roll.total
+        self.result = stringifier.stringify(the_roll)
+        self.comment = the_roll.comment
+
+    @property
+    def crit(self):
+        raise NotImplementedError
+
+    def __str__(self):
+        return self.result
+
+
 # noinspection PyMethodMayBeStatic
 class Roller:
     def __init__(self):
-        self.nodes = {
+        self._nodes = {
             ast.Expression: self._eval_expression,
             ast.AnnotatedNumber: self._eval_annotatednumber,
             ast.Literal: self._eval_literal,
@@ -35,21 +55,21 @@ class Roller:
         }
         self.context = RollContext()
 
-    def roll(self, expr):
+    def roll(self, expr, stringifier=None):
+        if stringifier is None:
+            stringifier = MarkdownStringifier()
+
         self.context.reset()
         dice_tree = ast.parser.parse(expr)
-        print(str(expr))
-        result = self._eval(dice_tree)
-        print(str(result))
-        print(result.total)
-        return result  # todo rollresult
+        dice_expr = self._eval(dice_tree)
+        return RollResult(dice_expr, stringifier)
 
     def _eval(self, node):
-        handler = self.nodes[type(node)]
+        handler = self._nodes[type(node)]
         return handler(node)
 
     def _eval_expression(self, node):
-        return self._eval(node.roll)
+        return Expression(self._eval(node.roll), node.comment)
 
     def _eval_annotatednumber(self, node):
         target = self._eval(node.value)
@@ -90,3 +110,4 @@ if __name__ == '__main__':
     roller = Roller()
     while True:
         roll_result = roller.roll(input())
+        print(str(roll_result))

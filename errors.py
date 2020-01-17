@@ -17,6 +17,11 @@ class RollSyntaxError(RollError):
         self.col = col
 
 
+class RollValueError(RollError):
+    """A bad value was passed to an operator."""
+    pass
+
+
 class TooManyRolls(RollError):
     """Too many dice rolled (in an individual dice or in rerolls)."""
     pass
