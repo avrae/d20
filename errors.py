@@ -1,4 +1,4 @@
-__all__ = ("RollError", "RollSyntaxError", "TooManyRolls")
+__all__ = ("RollError", "RollSyntaxError", "RollValueError", "TooManyRolls")
 
 
 class RollError(Exception):

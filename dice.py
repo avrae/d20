@@ -1,7 +1,15 @@
+from enum import IntEnum
+
 import diceast as ast
 from errors import *
 from models import *
 from stringifiers import MarkdownStringifier
+
+
+class CritType(IntEnum):
+    NORMAL = 0
+    CRIT = 1
+    FAIL = 2
 
 
 class RollContext:
@@ -20,11 +28,13 @@ class RollContext:
 
 
 class RollResult:
-    def __init__(self, the_roll, stringifier):
+    def __init__(self, the_ast, the_roll, stringifier):
         """
+        :type the_ast: ast.Node
         :type the_roll: models.Expression
         :type stringifier: stringifiers.Stringifier
         """
+        self.ast = the_ast
         self.roll = the_roll
         self.total = the_roll.total
         self.result = stringifier.stringify(the_roll)
@@ -32,7 +42,31 @@ class RollResult:
 
     @property
     def crit(self):
-        raise NotImplementedError
+        """
+        If the leftmost node was Xd20kh1, returns :type:`CritType.CRIT` if the roll was a 20 and
+        :type:`CritType.FAIL` if the roll was a 1.
+        Returns :type:`CritType.NORMAL` otherwise.
+
+        :rtype: CritType
+        """
+        # find the left most node in the dice expression
+        left = self.roll
+        while left.children:
+            left = left.children[0]
+
+        # ensure the node is dice
+        if not isinstance(left, Dice):
+            return CritType.NORMAL
+
+        # ensure only one die of size 20 is kept
+        if not (len(left.keptset) == 1 and left.size == 20):
+            return CritType.NORMAL
+
+        if left.total == 1:
+            return CritType.FAIL
+        elif left.total == 20:
+            return CritType.CRIT
+        return CritType.NORMAL
 
     def __str__(self):
         return self.result
@@ -56,15 +90,26 @@ class Roller:
         self.context = RollContext()
 
     def roll(self, expr, stringifier=None):
+        """
+        Rolls the dice.
+
+        :param expr: The dice to roll.
+        :type expr: str or ast.Node
+        :param stringifier: The stringifier to stringify the result. Defaults to MarkdownStringifier.
+        :type stringifier: stringifiers.Stringifier
+        :rtype: RollResult
+        """
         if stringifier is None:
             stringifier = MarkdownStringifier()
 
         self.context.reset()
         dice_tree = ast.parser.parse(expr)
         dice_expr = self._eval(dice_tree)
-        return RollResult(dice_expr, stringifier)
+        return RollResult(dice_tree, dice_expr, stringifier)
 
     def _eval(self, node):
+        # noinspection PyUnresolvedReferences
+        # for some reason pycharm thinks this isn't a valid dict operation
         handler = self._nodes[type(node)]
         return handler(node)
 
@@ -111,3 +156,4 @@ if __name__ == '__main__':
     while True:
         roll_result = roller.roll(input())
         print(str(roll_result))
+        print(roll_result.crit)

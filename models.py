@@ -72,9 +72,6 @@ class Number(abc.ABC):  # num
     def __float__(self):
         return float(self.total)
 
-    def __str__(self):
-        raise NotImplementedError
-
 
 class Expression(Number):
     __slots__ = ("roll", "comment")
@@ -98,11 +95,6 @@ class Expression(Number):
     @property
     def children(self):
         return [self.roll]
-
-    def __str__(self):
-        if self.comment:
-            return f"{str(self.roll)} {self.comment}"
-        return str(self.roll)
 
 
 class Literal(Number):
@@ -137,12 +129,6 @@ class Literal(Number):
         """
         self.values.append(value)
 
-    def __str__(self):
-        history = ' -> '.join(map(str, self.values))
-        if self.exploded:
-            return f"{history}!"
-        return history
-
 
 class UnOp(Number):
     __slots__ = ("op", "value")
@@ -172,9 +158,6 @@ class UnOp(Number):
     @property
     def children(self):
         return [self.value]
-
-    def __str__(self):
-        return f"{self.op}{str(self.value)}"
 
 
 class BinOp(Number):
@@ -221,9 +204,6 @@ class BinOp(Number):
     def children(self):
         return [self.left, self.right]
 
-    def __str__(self):
-        return f"{str(self.left)} {self.op} {str(self.right)}"
-
 
 class Parenthetical(Number):
     __slots__ = ("value", "operations")
@@ -255,9 +235,6 @@ class Parenthetical(Number):
     def children(self):
         return self.value.children
 
-    def __str__(self):
-        return f"({str(self.value)}){''.join([str(op) for op in self.operations])}"
-
 
 class Set(Number):
     __slots__ = ("values", "operations")
@@ -280,13 +257,6 @@ class Set(Number):
     @property
     def children(self):
         return self.values
-
-    def __str__(self):
-        out = f"{', '.join([str(v) for v in self.values])}"
-        ops = ''.join([str(op) for op in self.operations])
-        if len(self.values) == 1:
-            return f"({out},){ops}"
-        return f"({out}){ops}"
 
 
 class Dice(Set):
@@ -312,9 +282,9 @@ class Dice(Set):
     def roll_another(self):
         self.values.append(Die.new(self.size, context=self._context))
 
-    def __str__(self):
-        return f"{self.num}d{self.size}{''.join([str(op) for op in self.operations])} " \
-               f"({', '.join([str(die) for die in self.values])})"
+    @property
+    def children(self):
+        return []
 
 
 class Die(Number):  # part of diceexpr
@@ -370,9 +340,6 @@ class Die(Number):  # part of diceexpr
     def force_value(self, new_value):
         if self.values:
             self.values[-1].update(new_value)
-
-    def __str__(self):
-        return ", ".join([str(v) for v in self.values])
 
 
 # noinspection PyUnresolvedReferences
@@ -482,8 +449,10 @@ class SetOperator:  # set_op, dice_op
         :type target: Dice
         """
         selector = self.sels[-1]
+        if selector.cat is not None:
+            raise errors.RollValueError(f"{str(selector)} is not a valid selector for minimums.")
         the_min = selector.num
-        for die in target.values:
+        for die in target.keptset:
             if die.number < the_min:
                 die.force_value(the_min)
 
@@ -492,8 +461,10 @@ class SetOperator:  # set_op, dice_op
         :type target: Dice
         """
         selector = self.sels[-1]
+        if selector.cat is not None:
+            raise errors.RollValueError(f"{str(selector)} is not a valid selector for maximums.")
         the_max = selector.num
-        for die in target.values:
+        for die in target.keptset:
             if die.number > the_max:
                 die.force_value(the_max)
 
