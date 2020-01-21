@@ -1,6 +1,6 @@
 import abc
 
-from models import *
+from .models import *
 
 __all__ = ("Stringifier", "SimpleStringifier", "MarkdownStringifier")
 

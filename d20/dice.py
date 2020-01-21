@@ -1,9 +1,11 @@
 from enum import IntEnum
 
-import diceast as ast
-from errors import *
-from models import *
-from stringifiers import MarkdownStringifier
+from . import diceast as ast
+from .errors import *
+from .models import *
+from .stringifiers import MarkdownStringifier
+
+__all__ = ("CritType", "RollContext", "RollResult", "Roller")
 
 
 class CritType(IntEnum):
@@ -70,6 +72,9 @@ class RollResult:
 
     def __str__(self):
         return self.result
+
+    def __repr__(self):
+        return f"<RollResult total={self.total}>"
 
 
 # noinspection PyMethodMayBeStatic

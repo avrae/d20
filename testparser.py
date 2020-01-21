@@ -1,4 +1,6 @@
 """
+Utility to check out the dice tree and generate images of graphs because pretty.
+
 Test syntaxes:
 
 1d20
@@ -15,7 +17,7 @@ Test syntaxes:
 from lark import Lark
 from lark.tree import pydot__tree_to_png
 
-with open("grammar.lark") as f:
+with open("d20/grammar.lark") as f:
     grammar = f.read()
 
 parser = Lark(grammar, start='expr', parser='lalr')

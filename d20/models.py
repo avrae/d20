@@ -1,7 +1,7 @@
 import abc
 import random
 
-import errors
+from . import errors
 
 __all__ = (
     "Number", "Expression", "Literal", "UnOp", "BinOp", "Parenthetical", "Set", "Dice", "Die",
