@@ -11,7 +11,7 @@ COMMENT.-1: /.+/
 ?num: comparison
 
 ?comparison: (comparison COMP_OPERATOR)? a_num
-COMP_OPERATOR: "<" | ">" | "==" | ">=" | "<=" | "!="
+COMP_OPERATOR: "==" | ">=" | "<=" | "!=" | "<" | ">"
 
 ?a_num: (a_num A_OP)? m_num
 A_OP: "+" | "-"
