@@ -17,7 +17,7 @@ COMP_OPERATOR: "==" | ">=" | "<=" | "!=" | "<" | ">"
 A_OP: "+" | "-"
 
 ?m_num: (m_num M_OP)? u_num
-M_OP: "*" | "/" | "//" | "%"
+M_OP: "*" | "//" | "/" | "%"
 
 ?u_num: numexpr | U_OP u_num
 U_OP: "+" | "-"
@@ -32,8 +32,8 @@ literal: INTEGER | DECIMAL
 // sets
 ?set: setexpr set_op*
 
-set_op: OPERATOR selector
-OPERATOR: "k" | "p"
+set_op: SET_OPERATOR selector
+SET_OPERATOR: "k" | "p"
 
 setexpr: "(" (num ("," num)* comma?)? ")"
 comma: ","
@@ -41,8 +41,8 @@ comma: ","
 // dice
 ?dice: diceexpr dice_op*
 
-dice_op: DICE_OPERATOR selector
-DICE_OPERATOR: OPERATOR | "rr" | "ro" | "ra" | "e" | "mi" | "ma"
+dice_op: (DICE_OPERATOR | SET_OPERATOR) selector
+DICE_OPERATOR: "rr" | "ro" | "ra" | "e" | "mi" | "ma"
 
 diceexpr: INTEGER? "d" INTEGER
 

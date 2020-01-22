@@ -220,10 +220,6 @@ class Parenthetical(Number):
         self.operations = operations
 
     @property
-    def number(self):
-        return self.value.number
-
-    @property
     def total(self):
         return self.value.total if self.kept else 0
 

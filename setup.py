@@ -15,7 +15,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/avrae/formaldice",
-    packages=setuptools.find_packages(),
+    packages=setuptools.find_packages(exclude=('tests',)),
     classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.6",

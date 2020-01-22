@@ -1,6 +1,6 @@
 # d20
 
-A fast, powerful, and extensible dice engine for D&D, d20 systems, and other applications.
+A fast, powerful, and extensible dice engine for D&D, d20 systems, and any other system that needs dice!
 
 ## Key Features
 - Quick to start - just use `d20.roll()`!

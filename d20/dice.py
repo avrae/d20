@@ -35,8 +35,8 @@ class RollResult:
     def __init__(self, the_ast, the_roll, stringifier):
         """
         :type the_ast: ast.Node
-        :type the_roll: models.Expression
-        :type stringifier: stringifiers.Stringifier
+        :type the_roll: d20.Expression
+        :type stringifier: d20.Stringifier
         """
         self.ast = the_ast
         self.roll = the_roll
@@ -103,7 +103,7 @@ class Roller:
         :param expr: The dice to roll.
         :type expr: str or ast.Node
         :param stringifier: The stringifier to stringify the result. Defaults to MarkdownStringifier.
-        :type stringifier: stringifiers.Stringifier
+        :type stringifier: d20.Stringifier
         :param bool allow_comments: Whether to parse for comments after the main roll expression (potential slowdown)
         :rtype: RollResult
         """
