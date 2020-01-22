@@ -1,5 +1,7 @@
 from enum import IntEnum
 
+import lark
+
 from . import diceast as ast
 from .errors import *
 from .models import *
@@ -94,7 +96,7 @@ class Roller:
         }
         self.context = RollContext()
 
-    def roll(self, expr, stringifier=None):
+    def roll(self, expr, stringifier=None, allow_comments=False):
         """
         Rolls the dice.
 
@@ -102,14 +104,42 @@ class Roller:
         :type expr: str or ast.Node
         :param stringifier: The stringifier to stringify the result. Defaults to MarkdownStringifier.
         :type stringifier: stringifiers.Stringifier
+        :param bool allow_comments: Whether to parse for comments after the main roll expression (potential slowdown)
         :rtype: RollResult
         """
         if stringifier is None:
             stringifier = MarkdownStringifier()
 
         self.context.reset()
-        dice_tree = ast.parser.parse(expr)
+        force_comment = None
+
+        if isinstance(expr, str):  # is this a preparsed tree?
+            try:
+                if not allow_comments:
+                    dice_tree = ast.parser.parse(expr, start='expr')
+                else:
+                    try:
+                        dice_tree = ast.parser.parse(expr, start='commented_expr')
+                    except lark.UnexpectedToken as ut:
+                        # if the statement up to the unexpected token ends with an operator, remove that from the end
+                        successful_fragment = expr[:ut.pos_in_stream]
+                        for op in SetOperator.OPERATIONS:
+                            if successful_fragment.endswith(op):
+                                successful_fragment = successful_fragment[:-len(op)]
+                                force_comment = expr[len(successful_fragment):]
+                                break
+                        else:
+                            raise
+                        # and parse again (handles edge cases like "1d20 keep the dragon grappled")
+                        dice_tree = ast.parser.parse(successful_fragment, start='commented_expr')
+            except lark.UnexpectedToken as ut:
+                raise RollSyntaxError(ut.line, ut.column, ut.token, ut.expected)
+        else:
+            dice_tree = expr
+
         dice_expr = self._eval(dice_tree)
+        if force_comment:
+            dice_expr.comment = force_comment
         return RollResult(dice_tree, dice_expr, stringifier)
 
     def _eval(self, node):

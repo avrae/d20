@@ -9,8 +9,11 @@ from lark import Lark, Transformer
 class RollTransformer(Transformer):
     _comma = object()
 
-    def expr(self, num_comment):
-        return Expression(*num_comment)
+    def expr(self, num):
+        return Expression(*num)
+
+    def commented_expr(self, numcomment):
+        return Expression(*numcomment)
 
     def comparison(self, binop):
         return BinOp(*binop)
@@ -322,11 +325,11 @@ class Dice(Node):  # diceexpr
 
 with open(os.path.join(os.path.dirname(__file__), 'grammar.lark')) as f:
     grammar = f.read()
-parser = Lark(grammar, start='expr', parser='lalr', transformer=RollTransformer())
+parser = Lark(grammar, start=['expr', 'commented_expr'], parser='lalr', transformer=RollTransformer())
 
 if __name__ == '__main__':
     while True:
-        parser = Lark(grammar, start='expr', parser='lalr')
+        parser = Lark(grammar, start=['expr', 'commented_expr'], parser='lalr')
         result = parser.parse(input())
         print(result.pretty())
         print(result)

@@ -346,6 +346,7 @@ class Die(Number):  # part of diceexpr
 # selecting on Dice will always return Die
 class SetOperator:  # set_op, dice_op
     __slots__ = ("op", "sels")
+    OPERATIONS = {"k", "p", "rr", "ro", "ra", "e", "mi", "ma"}
 
     def __init__(self, op, sels):
         """

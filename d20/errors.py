@@ -11,10 +11,15 @@ class RollError(Exception):
 class RollSyntaxError(RollError):
     """Syntax error happened while parsing roll."""
 
-    def __init__(self, msg, line, col):
-        super().__init__(msg)
+    def __init__(self, line, col, got, expected):
         self.line = line
         self.col = col
+        self.got = got
+        self.expected = expected
+
+        msg = f"Unexpected input on line {line}, col {col}: expected {', '.join([str(ex) for ex in expected])}, " \
+              f"got {str(got)}"
+        super().__init__(msg)
 
 
 class RollValueError(RollError):
