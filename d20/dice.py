@@ -154,11 +154,3 @@ class Roller:
 
     def _eval_dice(self, node):
         return Dice.new(node.num, node.size, context=self.context)
-
-
-if __name__ == '__main__':
-    roller = Roller()
-    while True:
-        roll_result = roller.roll(input())
-        print(str(roll_result))
-        print(roll_result.crit)

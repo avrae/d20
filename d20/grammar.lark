@@ -8,13 +8,13 @@ COMMENT.-1: /.+/
 // math and operators, PMDAS
 ?num: comparison
 
-?comparison: [comparison COMP_OPERATOR] a_num
+?comparison: (comparison COMP_OPERATOR)? a_num
 COMP_OPERATOR: "<" | ">" | "==" | ">=" | "<=" | "!="
 
-?a_num: [a_num A_OP] m_num
+?a_num: (a_num A_OP)? m_num
 A_OP: "+" | "-"
 
-?m_num: [m_num M_OP] u_num
+?m_num: (m_num M_OP)? u_num
 M_OP: "*" | "/" | "//" | "%"
 
 ?u_num: numexpr | U_OP u_num
@@ -33,7 +33,7 @@ literal: INTEGER | DECIMAL
 set_op: OPERATOR selector
 OPERATOR: "k" | "p"
 
-setexpr: "(" [num ("," num)* comma?] ")"
+setexpr: "(" (num ("," num)* comma?)? ")"
 comma: ","
 
 // dice
@@ -44,7 +44,7 @@ DICE_OPERATOR: OPERATOR | "rr" | "ro" | "ra" | "e" | "mi" | "ma"
 
 diceexpr: INTEGER? "d" INTEGER
 
-selector: SELTYPE? INTEGER
+selector: [SELTYPE] INTEGER
 
 SELTYPE: "l" | "h" | "<" | ">"
 

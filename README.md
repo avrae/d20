@@ -12,7 +12,7 @@ A fast, powerful, and extensible dice engine for D&D, d20 systems, and other app
 ## Installing
 **Requires Python 3.6+**.
 
-d20 is built on top of the amazing Lark parser, and has it as its only dependency!
+d20 is built on top of the amazing [Lark](https://github.com/lark-parser/lark) parser, and has it as its only dependency!
 
 ```
 python3 -m pip install -U d20

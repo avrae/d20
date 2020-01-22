@@ -55,8 +55,6 @@ class RollTransformer(Transformer):
         return Dice(*dice)
 
     def selector(self, sel):
-        if len(sel) == 1:
-            return SetSelector(None, *sel)
         return SetSelector(*sel)
 
     def comma(self, _):
