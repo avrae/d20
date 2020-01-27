@@ -1,5 +1,6 @@
 from enum import IntEnum
 
+import cachetools
 import lark
 
 from . import diceast as ast
@@ -95,6 +96,7 @@ class Roller:
             ast.Dice: self._eval_dice
         }
         self.context = RollContext()
+        self._parse_cache = cachetools.LFUCache(256)
 
     def roll(self, expr, stringifier=None, allow_comments=False):
         """
@@ -111,37 +113,61 @@ class Roller:
             stringifier = MarkdownStringifier()
 
         self.context.reset()
-        force_comment = None
 
         if isinstance(expr, str):  # is this a preparsed tree?
-            try:
-                if not allow_comments:
-                    dice_tree = ast.parser.parse(expr, start='expr')
-                else:
-                    try:
-                        dice_tree = ast.parser.parse(expr, start='commented_expr')
-                    except lark.UnexpectedToken as ut:
-                        # if the statement up to the unexpected token ends with an operator, remove that from the end
-                        successful_fragment = expr[:ut.pos_in_stream]
-                        for op in SetOperator.OPERATIONS:
-                            if successful_fragment.endswith(op):
-                                successful_fragment = successful_fragment[:-len(op)]
-                                force_comment = expr[len(successful_fragment):]
-                                break
-                        else:
-                            raise
-                        # and parse again (handles edge cases like "1d20 keep the dragon grappled")
-                        dice_tree = ast.parser.parse(successful_fragment, start='commented_expr')
-            except lark.UnexpectedToken as ut:
-                raise RollSyntaxError(ut.line, ut.column, ut.token, ut.expected)
+            dice_tree = self.parse(expr, allow_comments)
         else:
             dice_tree = expr
 
         dice_expr = self._eval(dice_tree)
-        if force_comment:
-            dice_expr.comment = force_comment
         return RollResult(dice_tree, dice_expr, stringifier)
 
+    # parsers
+    def parse(self, expr, allow_comments=False):
+        """
+        Parses a dice expression into an AST.
+
+        :param expr: The dice to roll.
+        :type expr: str
+        :param bool allow_comments: Whether to parse for comments after the main roll expression (potential slowdown)
+        :rtype: ast.Node
+        """
+        try:
+            if not allow_comments:
+                return self._parse_no_comment(expr)
+            else:
+                return self._parse_with_comments(expr)
+        except lark.UnexpectedToken as ut:
+            raise RollSyntaxError(ut.line, ut.column, ut.token, ut.expected)
+
+    def _parse_no_comment(self, expr):
+        # see if this expr is in cache
+        clean_expr = expr.replace(' ', '')
+        if clean_expr in self._parse_cache:
+            return self._parse_cache[clean_expr]
+        dice_tree = ast.parser.parse(expr, start='expr')
+        self._parse_cache[clean_expr] = dice_tree
+        return dice_tree
+
+    def _parse_with_comments(self, expr):
+        try:
+            return ast.parser.parse(expr, start='commented_expr')
+        except lark.UnexpectedToken as ut:
+            # if the statement up to the unexpected token ends with an operator, remove that from the end
+            successful_fragment = expr[:ut.pos_in_stream]
+            for op in SetOperator.OPERATIONS:
+                if successful_fragment.endswith(op):
+                    successful_fragment = successful_fragment[:-len(op)]
+                    force_comment = expr[len(successful_fragment):]
+                    break
+            else:
+                raise
+            # and parse again (handles edge cases like "1d20 keep the dragon grappled")
+            result = ast.parser.parse(successful_fragment, start='commented_expr')
+            result.comment = force_comment
+            return result
+
+    # evaluator
     def _eval(self, node):
         # noinspection PyUnresolvedReferences
         # for some reason pycharm thinks this isn't a valid dict operation

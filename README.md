@@ -110,6 +110,30 @@ Selectors select from the remaining kept values in a set.
 | X < Y | less than |
 | X != Y | inequality |
 
+### Examples
+```python
+>>> from d20 import roll
+>>> r = roll("4d6kh3")  # highest 3 of 4 6-sided dice
+>>> r.total
+14
+>>> str(r)
+'4d6kh3 (4, 4, **6**, ~~3~~) = `14`'
+
+>>> r = roll("2d6ro<3")  # roll 2d6s, then reroll any 1s or 2s once
+>>> r.total
+9
+>>> str(r)
+'2d6ro<3 (**~~1~~**, 3, **6**) = `9`'
+
+>>> r = roll("8d6mi2")  # roll 8d6s, with each die having a minimum roll of 2
+>>> r.total
+33
+>>> str(r)
+'8d6mi2 (1 -> 2, **6**, 4, 2, **6**, 2, 5, **6**) = `33`'
+```
+
+## Custom Stringifier
+
 ## Documentation
 
 TODO

@@ -5,5 +5,6 @@ from .models import *
 from .stringifiers import *
 
 # useful top-level functions to get started quickly
-roll = Roller().roll
-parse = ast.parser.parse
+_roller = Roller()
+roll = _roller.roll
+parse = _roller.parse
