@@ -19,8 +19,6 @@ A fast, powerful, and extensible dice engine for D&D, d20 systems, and any other
 ## Installing
 **Requires Python 3.6+**.
 
-d20 is built on top of the amazing [Lark](https://github.com/lark-parser/lark) parser, and has it as its only dependency!
-
 ```
 python3 -m pip install -U d20
 ```
@@ -133,6 +131,47 @@ Selectors select from the remaining kept values in a set.
 ```
 
 ## Custom Stringifier
+By default, d20 stringifies the result of each dice roll formatted in Markdown, which may not be useful in your application. 
+To change this behaviour, you can create a subclass of [`d20.Stringifier`](https://github.com/avrae/d20/blob/master/d20/stringifiers.py) 
+(or `d20.SimpleStringifier` as a starting point), and implement the `_str_*` methods to customize how your dice tree is stringified. 
+
+Then, simply pass an instance of your stringifier into the `roll()` function!
+```python
+>>> import d20
+>>> class MyStringifier(d20.SimpleStringifier):
+...     def _stringify(self, node):
+...         if not node.kept:
+...             return 'X'
+...         return super()._stringify(node)
+...
+...     def _str_expression(self, node):
+...         return f"The result of the roll {self.stringify(node.roll)} was {int(node.total)}"
+
+>>> result = d20.roll("4d6e6kh3", stringifier=MyStringifier())
+>>> str(result)
+'The result of the roll 4d6e6kh3 (X, 5, 6!, 6!, X, X) was 17'
+```
+
+## Annotations and Comments
+Each dice node supports value annotations - i.e., a method to "tag" parts of a roll with some indicator. For example,
+```
+3d6 [fire] + 1d4 [piercing]
+-(1d8 + 3) [healing]
+(1 [one], 2 [two], 3 [three])
+```
+are all examples of valid annotations. Annotations are purely visual and do not affect the evaluation of the roll by default.
+
+Additionally, when `allow_comments=True` is passed to `roll()`, the result of the roll may have a comment:
+```python
+>>> from d20 import roll
+>>> result = roll("1d20 I rolled a d20", allow_comments=True)
+>>> str(result)
+'1d20 (13) = `13`'
+>>> result.comment
+'I rolled a d20'
+```
+Note that while `allow_comments` is enabled, AST caching is disabled, which may lead to slightly worse performance.
+
 
 ## Documentation
 

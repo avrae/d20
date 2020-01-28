@@ -1,7 +1,7 @@
 import abc
 import os
 
-from lark import Lark, Transformer
+from lark import Lark, Transformer, Token
 
 
 # noinspection PyMethodMayBeStatic
@@ -120,10 +120,13 @@ class Literal(Node):  # literal
 
     def __init__(self, value):
         """
-        :type value: lark.Token or str
+        :type value: lark.Token or int or float
         """
         super().__init__()
-        self.value = int(value) if value.type == 'INTEGER' else float(value)
+        if isinstance(value, Token):
+            self.value = int(value) if value.type == 'INTEGER' else float(value)
+        else:
+            self.value = value
 
     @property
     def children(self):
