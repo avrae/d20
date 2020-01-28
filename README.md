@@ -145,7 +145,7 @@ Then, simply pass an instance of your stringifier into the `roll()` function!
 ...         return super()._stringify(node)
 ...
 ...     def _str_expression(self, node):
-...         return f"The result of the roll {self.stringify(node.roll)} was {int(node.total)}"
+...         return f"The result of the roll {self._stringify(node.roll)} was {int(node.total)}"
 
 >>> result = d20.roll("4d6e6kh3", stringifier=MyStringifier())
 >>> str(result)

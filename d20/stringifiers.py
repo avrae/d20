@@ -74,7 +74,7 @@ class SimpleStringifier(Stringifier):
     """
 
     def _str_expression(self, node):
-        return f"{self.stringify(node.roll)} = {int(node.total)}"
+        return f"{self._stringify(node.roll)} = {int(node.total)}"
 
     def _str_literal(self, node):
         history = ' -> '.join(map(str, node.values))
@@ -135,7 +135,7 @@ class MarkdownStringifier(SimpleStringifier):
         return super()._stringify(node)
 
     def _str_expression(self, node):
-        return f"{self.stringify(node.roll)} = `{int(node.total)}`"
+        return f"{self._stringify(node.roll)} = `{int(node.total)}`"
 
     def _str_die(self, node):
         the_rolls = []
