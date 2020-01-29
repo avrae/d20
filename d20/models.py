@@ -72,6 +72,9 @@ class Number(abc.ABC):  # num
     def __float__(self):
         return float(self.total)
 
+    def __repr__(self):
+        return f"<Number total={self.total} kept={self.kept}>"
+
 
 class Expression(Number):
     __slots__ = ("roll", "comment")
@@ -95,6 +98,9 @@ class Expression(Number):
     @property
     def children(self):
         return [self.roll]
+
+    def __repr__(self):
+        return f"<Expression roll={self.roll} comment={self.comment}>"
 
 
 class Literal(Number):
@@ -129,6 +135,9 @@ class Literal(Number):
         """
         self.values.append(value)
 
+    def __repr__(self):
+        return f"<Literal {self.number}>"
+
 
 class UnOp(Number):
     __slots__ = ("op", "value")
@@ -158,6 +167,9 @@ class UnOp(Number):
     @property
     def children(self):
         return [self.value]
+
+    def __repr__(self):
+        return f"<UnOp op={self.op} value={self.value}>"
 
 
 class BinOp(Number):
@@ -204,6 +216,9 @@ class BinOp(Number):
     def children(self):
         return [self.left, self.right]
 
+    def __repr__(self):
+        return f"<BinOp left={self.left} op={self.op} right={self.right}>"
+
 
 class Parenthetical(Number):
     __slots__ = ("value", "operations")
@@ -231,6 +246,9 @@ class Parenthetical(Number):
     def children(self):
         return self.value.children
 
+    def __repr__(self):
+        return f"<Parenthetical value={self.value} operations={self.operations}>"
+
 
 class Set(Number):
     __slots__ = ("values", "operations")
@@ -253,6 +271,9 @@ class Set(Number):
     @property
     def children(self):
         return self.values
+
+    def __repr__(self):
+        return f"<Set values={self.values} operations={self.operations}>"
 
 
 class Dice(Set):
@@ -281,6 +302,9 @@ class Dice(Set):
     @property
     def children(self):
         return []
+
+    def __repr__(self):
+        return f"<Dice num={self.num} size={self.size} values={self.values} operations={self.operations}>"
 
 
 class Die(Number):  # part of diceexpr
@@ -336,6 +360,9 @@ class Die(Number):  # part of diceexpr
     def force_value(self, new_value):
         if self.values:
             self.values[-1].update(new_value)
+
+    def __repr__(self):
+        return f"<Die size={self.size} values={self.values}>"
 
 
 # noinspection PyUnresolvedReferences
@@ -468,6 +495,9 @@ class SetOperator:  # set_op, dice_op
     def __str__(self):
         return "".join([f"{self.op}{str(sel)}" for sel in self.sels])
 
+    def __repr__(self):
+        return f"<SetOperator op={self.op} sels={self.sels}>"
+
 
 class SetSelector:  # selector
     __slots__ = ("cat", "num")
@@ -519,3 +549,6 @@ class SetSelector:  # selector
         if self.cat:
             return f"{self.cat}{self.num}"
         return str(self.num)
+
+    def __repr__(self):
+        return f"<SetSelector cat={self.cat} num={self.num}>"
