@@ -1,2 +1,2 @@
-cachetools==4.0.0
-lark-parser==0.8.1
+cachetools>=3.1.0
+lark-parser~=0.8.0
