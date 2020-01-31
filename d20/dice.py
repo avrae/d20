@@ -12,7 +12,7 @@ __all__ = ("CritType", "RollContext", "RollResult", "Roller")
 
 
 class CritType(IntEnum):
-    NORMAL = 0
+    NONE = 0
     CRIT = 1
     FAIL = 2
 
@@ -50,7 +50,7 @@ class RollResult:
         """
         If the leftmost node was Xd20kh1, returns :type:`CritType.CRIT` if the roll was a 20 and
         :type:`CritType.FAIL` if the roll was a 1.
-        Returns :type:`CritType.NORMAL` otherwise.
+        Returns :type:`CritType.NONE` otherwise.
 
         :rtype: CritType
         """
@@ -61,17 +61,17 @@ class RollResult:
 
         # ensure the node is dice
         if not isinstance(left, Dice):
-            return CritType.NORMAL
+            return CritType.NONE
 
         # ensure only one die of size 20 is kept
         if not (len(left.keptset) == 1 and left.size == 20):
-            return CritType.NORMAL
+            return CritType.NONE
 
         if left.total == 1:
             return CritType.FAIL
         elif left.total == 20:
             return CritType.CRIT
-        return CritType.NORMAL
+        return CritType.NONE
 
     def __str__(self):
         return self.result

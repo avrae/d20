@@ -266,6 +266,34 @@ Searching for the d4:
 As a note, even though a `Dice` object is the parent of `Die` objects, `Dice.children` returns an empty list, since it's 
 more common to look for the dice, and not each individual component of that dice.
 
+## Performance
+By default, the parser caches the 256 most frequently used dice expressions in an LFU cache, allowing for a significant 
+speedup when rolling many of the same kinds of rolls. This caching is disabled when `allow_comments` is True.
+
+With caching:
+```bash
+$ python3 -m timeit -s "from d20 import roll" "roll('1d20')"
+10000 loops, best of 5: 21.6 usec per loop
+$ python3 -m timeit -s "from d20 import roll" "roll('100d20')"
+500 loops, best of 5: 572 usec per loop
+$ python3 -m timeit -s "from d20 import roll; expr='1d20+'*50+'1d20'" "roll(expr)"
+500 loops, best of 5: 732 usec per loop
+$ python3 -m timeit -s "from d20 import roll" "roll('10d20rr<20')"
+1000 loops, best of 5: 1.13 msec per loop
+```
+
+Without caching:
+```bash
+$ python3 -m timeit -s "from d20 import roll" "roll('1d20')"
+5000 loops, best of 5: 61.6 usec per loop
+$ python3 -m timeit -s "from d20 import roll" "roll('100d20')"
+500 loops, best of 5: 620 usec per loop
+$ python3 -m timeit -s "from d20 import roll; expr='1d20+'*50+'1d20'" "roll(expr)"
+500 loops, best of 5: 2.1 msec per loop
+$ python3 -m timeit -s "from d20 import roll" "roll('10d20rr<20')"
+1000 loops, best of 5: 1.26 msec per loop
+```
+
 ## Documentation
 
 TODO
