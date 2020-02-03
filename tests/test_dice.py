@@ -59,6 +59,22 @@ def test_chaining_operators():
     assert r("(1, 2, 3)k1k2") == 3
 
 
+def test_crit():
+    # roll until we get a crit
+    result = roll("1d20")
+    while result.total != 20:
+        result = roll("1d20")
+    assert result.crit == CritType.CRIT
+
+    while result.total != 1:
+        result = roll("1d20")
+    assert result.crit == CritType.FAIL
+
+    while result.total == 1 or result.total == 20:
+        result = roll("1d20")
+    assert result.crit == CritType.NONE
+
+
 # node tests
 def test_literal():
     assert r("1") == 1

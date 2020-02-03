@@ -4,6 +4,7 @@
 [![PyPI license](https://img.shields.io/pypi/l/d20.svg)](https://pypi.python.org/pypi/d20/)
 [![PyPI pyversions](https://img.shields.io/pypi/pyversions/d20.svg)](https://pypi.python.org/pypi/d20/)
 ![](https://github.com/avrae/d20/workflows/Test%20Package/badge.svg)
+[![codecov](https://codecov.io/gh/avrae/d20/branch/master/graph/badge.svg)](https://codecov.io/gh/avrae/d20)
 
 
 
