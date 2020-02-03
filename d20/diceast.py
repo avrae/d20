@@ -74,6 +74,41 @@ class Node(abc.ABC):
         """
         raise NotImplementedError
 
+    @property
+    def left(self):
+        """
+        Returns the node's leftmost child, or None if there are no children.
+
+        :rtype: Node or None
+        """
+        return self.children[0] if self.children else None
+
+    @left.setter
+    def left(self, value):
+        self._set_left(value)
+
+    @property
+    def right(self):
+        """
+        Returns the node's rightmost child, or None if there are no children.
+
+        :rtype: Node or None
+        """
+        return self.children[-1] if self.children else None
+
+    @right.setter
+    def right(self, value):
+        self._set_right(value)
+
+    def _set_left(self, value):
+        """
+        :type value: Node
+        """
+        raise NotImplementedError
+
+    def _set_right(self, value):
+        self._set_left(value)  # by default, assume the left and right are the same
+
     def __str__(self):
         raise NotImplementedError
 
@@ -88,6 +123,9 @@ class Expression(Node):  # expr
     @property
     def children(self):
         return [self.roll]
+
+    def _set_left(self, value):
+        self.roll = value
 
     def __str__(self):
         if self.comment:
@@ -111,6 +149,9 @@ class AnnotatedNumber(Node):  # numexpr
     def children(self):
         return [self.value]
 
+    def _set_left(self, value):
+        self.value = value
+
     def __str__(self):
         return f"{str(self.value)} {''.join(self.annotations)}"
 
@@ -132,6 +173,9 @@ class Literal(Node):  # literal
     def children(self):
         return []
 
+    def _set_left(self, value):
+        raise ValueError("Literal object has no children.")
+
     def __str__(self):
         return str(self.value)
 
@@ -149,6 +193,9 @@ class Parenthetical(Node):
     @property
     def children(self):
         return [self.value]
+
+    def _set_left(self, value):
+        self.value = value
 
     def __str__(self):
         return f"({str(self.value)})"
@@ -169,6 +216,9 @@ class UnOp(Node):  # u_num
     @property
     def children(self):
         return [self.value]
+
+    def _set_left(self, value):
+        self.value = value
 
     def __str__(self):
         return f"{self.op}{str(self.value)}"
@@ -191,6 +241,12 @@ class BinOp(Node):  # a_num, m_num
     @property
     def children(self):
         return [self.left, self.right]
+
+    def _set_left(self, value):
+        self.left = value
+
+    def _set_right(self, value):
+        self.right = value
 
     def __str__(self):
         return f"{str(self.left)} {self.op} {str(self.right)}"
@@ -225,7 +281,7 @@ class SetSelector:  # selector
 
     def __init__(self, cat, num):
         """
-        :type cat: lark.Token or None
+        :type cat: str or lark.Token or None
         :type num: int
         """
         self.cat = str(cat) if cat is not None else None
@@ -253,6 +309,9 @@ class OperatedSet(Node):  # set
     @property
     def children(self):
         return [self.value]
+
+    def _set_left(self, value):
+        self.value = value
 
     def _simplify_operations(self):
         """Simplifies expressions like k1k2k3 into k(1,2,3)."""
@@ -288,6 +347,12 @@ class NumberSet(Node):  # setexpr
     def children(self):
         return self.values
 
+    def _set_left(self, value):
+        self.values[0] = value
+
+    def _set_right(self, value):
+        self.values[-1] = value
+
     def __str__(self):
         out = f"{', '.join([str(v) for v in self.values])}"
         if len(self.values) == 1:
@@ -322,6 +387,9 @@ class Dice(Node):  # diceexpr
     def children(self):
         return []
 
+    def _set_left(self, value):
+        raise ValueError("Dice object has no children.")
+
     def __str__(self):
         return f"{self.num}d{self.size}"
 
@@ -333,8 +401,8 @@ parser = Lark(grammar, start=['expr', 'commented_expr'], parser='lalr', transfor
 
 if __name__ == '__main__':
     while True:
-        parser = Lark(grammar, start=['expr', 'commented_expr'], parser='lalr')
-        result = parser.parse(input())
+        parser = Lark(grammar, start=['expr', 'commented_expr'], parser='lalr', maybe_placeholders=True)
+        result = parser.parse(input(), start='expr')
         print(result.pretty())
         print(result)
         expr = RollTransformer().transform(result)

@@ -1,20 +1,27 @@
+import copy
 from enum import IntEnum
 
 import cachetools
 import lark
 
-from . import diceast as ast
+from . import diceast as ast, utils
 from .errors import *
 from .models import *
 from .stringifiers import MarkdownStringifier
 
-__all__ = ("CritType", "RollContext", "RollResult", "Roller")
+__all__ = ("CritType", "AdvType", "RollContext", "RollResult", "Roller")
 
 
 class CritType(IntEnum):
     NONE = 0
     CRIT = 1
     FAIL = 2
+
+
+class AdvType(IntEnum):
+    NONE = 0
+    ADV = 1
+    DIS = -1
 
 
 class RollContext:
@@ -98,7 +105,7 @@ class Roller:
         self.context = RollContext()
         self._parse_cache = cachetools.LFUCache(256)
 
-    def roll(self, expr, stringifier=None, allow_comments=False):
+    def roll(self, expr, stringifier=None, allow_comments=False, advantage=AdvType.NONE):
         """
         Rolls the dice.
 
@@ -107,6 +114,7 @@ class Roller:
         :param stringifier: The stringifier to stringify the result. Defaults to MarkdownStringifier.
         :type stringifier: d20.Stringifier
         :param bool allow_comments: Whether to parse for comments after the main roll expression (potential slowdown)
+        :param AdvType advantage: If the roll should be made at advantage. Only applies if the leftmost node is 1d20.
         :rtype: RollResult
         """
         if stringifier is None:
@@ -118,6 +126,9 @@ class Roller:
             dice_tree = self.parse(expr, allow_comments)
         else:
             dice_tree = expr
+
+        if advantage != AdvType.NONE:
+            dice_tree = utils.ast_adv_copy(dice_tree, advantage)
 
         dice_expr = self._eval(dice_tree)
         return RollResult(dice_tree, dice_expr, stringifier)
