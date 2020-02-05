@@ -193,7 +193,7 @@ objects, which can be accessed as such:
 >>> result = roll("3d6 + 1d4 + 3")
 >>> str(result)
 '3d6 (4, **6**, **6**) + 1d4 (**1**) + 3 = `20`'
->>> result.roll
+>>> result.expr
 <Expression roll=<BinOp left=<BinOp left=<Dice num=3 size=6 values=[<Die size=6 values=[<Literal 4>]>, <Die size=6 values=[<Literal 6>]>, <Die size=6 values=[<Literal 6>]>] operations=[]> op=+ right=<Dice num=1 size=4 values=[<Die size=4 values=[<Literal 1>]>] operations=[]>> op=+ right=<Literal 3>> comment=None>
 ```
 or, in a easier-to-read format,
@@ -228,13 +228,13 @@ Finding the left and right-most operands:
 >>> from d20 import roll
 
 >>> binop = roll("1 + 2 + 3 + 4")
->>> left = binop.roll
+>>> left = binop.expr
 >>> while left.children:
 ...     left = left.children[0]
 >>> left
 <Literal 1>
 
->>> right = binop.roll
+>>> right = binop.expr
 >>> while right.children:
 ...     right = right.children[-1]
 >>> right
@@ -248,7 +248,7 @@ Searching for the d4:
 >>> mixed = roll("-1d8 + 4 - (3, 1d4)kh1")
 >>> str(mixed)
 '-1d8 (**8**) + 4 - (3, ~~1d4 (3)~~)kh1 = `-7`'
->>> root = mixed.roll
+>>> root = mixed.expr
 >>> def dfs(node, predicate):
 ...     if predicate(node):
 ...         return node

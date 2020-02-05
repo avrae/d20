@@ -25,7 +25,7 @@ def test_roll_types():
         assert isinstance(result.result, str)
         assert isinstance(result.total, (int, float))
         assert isinstance(result.ast, ast.Node)
-        assert isinstance(result.roll, Expression)
+        assert isinstance(result.expr, Expression)
 
 
 def test_sane_totals():

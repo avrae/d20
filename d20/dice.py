@@ -1,4 +1,3 @@
-import copy
 from enum import IntEnum
 
 import cachetools
@@ -47,7 +46,7 @@ class RollResult:
         :type stringifier: d20.Stringifier
         """
         self.ast = the_ast
-        self.roll = the_roll
+        self.expr = the_roll
         self.total = the_roll.total
         self.result = stringifier.stringify(the_roll)
         self.comment = the_roll.comment
@@ -62,7 +61,7 @@ class RollResult:
         :rtype: CritType
         """
         # find the left most node in the dice expression
-        left = self.roll
+        left = self.expr
         while left.children:
             left = left.children[0]
 
