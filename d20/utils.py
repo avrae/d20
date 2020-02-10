@@ -1,6 +1,6 @@
 import copy
 
-from d20 import diceast
+from d20 import diceast, models
 
 
 def ast_adv_copy(ast, advtype):
@@ -53,3 +53,85 @@ def ast_adv_copy(ast, advtype):
     parent.operations.insert(0, kh1)
 
     return root
+
+
+def simplify_expr_annotations(expr, ambig_inherit=None):
+    """
+    Transforms an expression in place by simplifying the annotations using a bubble-up method.
+
+    >>> expr = roll("1d20[foo]+3").expr
+    >>> simplify_expr_annotations(expr.roll)
+    >>> SimpleStringifier().stringify(expr)
+    "1d20 (4) + 3 [foo] = 7"
+
+    :param expr: The expression to transform.
+    :type expr: d20.models.Number
+    :param ambig_inherit: When encountering a child node with no annotation and the parent has ambiguous types, which to inherit. Can be None for no inherit, 'left' for leftmost, or 'right' for rightmost.
+    :type ambig_inherit: Optional[Literal['left', 'right']]
+    """
+    if ambig_inherit not in ('left', 'right', None):
+        raise ValueError("ambig_inherit must be 'left', 'right', or None.")
+
+    def do_simplify(node):
+        possible_types = []
+        child_possibilities = {}
+        for child in node.children:
+            child_possibilities[child] = do_simplify(child)
+            possible_types.extend(t for t in child_possibilities[child] if t not in possible_types)
+        if node.annotation is not None:
+            possible_types.append(node.annotation)
+
+        # if I have no type or the same as children and all my children have the same type, inherit
+        if len(possible_types) == 1:
+            node.annotation = possible_types[0]
+            for child in node.children:
+                child.annotation = None
+        # if there are ambiguous types, resolve children by ambiguity rules
+        elif len(possible_types) and ambig_inherit is not None:
+            for child in node.children:
+                if child_possibilities[child]:
+                    continue
+                elif ambig_inherit == 'left':
+                    child.annotation = possible_types[0]
+                elif ambig_inherit == 'right':
+                    child.annotation = possible_types[-1]
+
+        # return all possible types
+        return tuple(possible_types)
+
+    do_simplify(expr)
+
+
+def simplify_expr(expr, **kwargs):
+    """
+    Transforms an expression in place by simplifying it (removing all dice and evaluating branches with respect to annotations).
+
+    >>> expr = roll("1d20[foo] + 3 - 1d4[bar]").expr
+    >>> simplify_expr(expr.roll)
+    >>> SimpleStringifier().stringify(expr)
+    "7 [foo] - 2 [bar] = 5"
+
+    :param expr: The expression to transform.
+    :type expr: d20.models.Number
+    :param kwargs: Arguments that are passed to :func:`simplify_expr_annotations`.
+    """
+    simplify_expr_annotations(expr, **kwargs)
+
+    def do_simplify(node):
+        """returns a pair of (replacement, branch had replacement)"""
+        if node.annotation:
+            return models.Literal(node.total, annotation=node.annotation), True
+
+        did_replace = False
+        for i, child in enumerate(node.children):
+            replacement, branch_had = do_simplify(child)
+            did_replace = did_replace or branch_had
+            if (not branch_had) and did_replace:  # here is the furthest we can bubble up a no-annotation branch
+                replacement = models.Literal(child.total)
+
+            if replacement is not child:
+                node.set_child(i, replacement)
+
+        return node, did_replace
+
+    do_simplify(expr)

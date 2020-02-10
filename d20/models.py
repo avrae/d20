@@ -12,9 +12,9 @@ __all__ = (
 class Number(abc.ABC):  # num
     __slots__ = ("kept", "annotation")
 
-    def __init__(self):
-        self.kept = True
-        self.annotation = None
+    def __init__(self, kept=True, annotation=None):
+        self.kept = kept
+        self.annotation = annotation
 
     @property
     def number(self):
@@ -66,6 +66,20 @@ class Number(abc.ABC):  # num
         """Returns a list of Numbers that this Number is a parent of."""
         raise NotImplementedError
 
+    def _child_set_check(self, index):
+        if index > (len(self.children) - 1) or index < -len(self.children):
+            raise IndexError
+
+    def set_child(self, index, value):
+        """
+        Sets the ith child of this Number.
+
+        :type index: int
+        :type value: Number
+        """
+        self._child_set_check(index)
+        raise NotImplementedError
+
     def __int__(self):
         return int(self.total)
 
@@ -79,11 +93,11 @@ class Number(abc.ABC):  # num
 class Expression(Number):
     __slots__ = ("roll", "comment")
 
-    def __init__(self, roll, comment):
+    def __init__(self, roll, comment, **kwargs):
         """
         :type roll: Number
         """
-        super().__init__()
+        super().__init__(**kwargs)
         self.roll = roll
         self.comment = comment
 
@@ -99,6 +113,10 @@ class Expression(Number):
     def children(self):
         return [self.roll]
 
+    def set_child(self, index, value):
+        self._child_set_check(index)
+        self.roll = value
+
     def __repr__(self):
         return f"<Expression roll={self.roll} comment={self.comment}>"
 
@@ -106,11 +124,11 @@ class Expression(Number):
 class Literal(Number):
     __slots__ = ("values", "exploded")
 
-    def __init__(self, value):
+    def __init__(self, value, **kwargs):
         """
         :type value: int or float
         """
-        super().__init__()
+        super().__init__(**kwargs)
         self.values = [value]  # history is tracked to support mi/ma op
         self.exploded = False
 
@@ -147,12 +165,12 @@ class UnOp(Number):
         "+": lambda v: +v
     }
 
-    def __init__(self, op, value):
+    def __init__(self, op, value, **kwargs):
         """
         :type op: str
         :type value: Number
         """
-        super().__init__()
+        super().__init__(**kwargs)
         self.op = op
         self.value = value
 
@@ -167,6 +185,10 @@ class UnOp(Number):
     @property
     def children(self):
         return [self.value]
+
+    def set_child(self, index, value):
+        self._child_set_check(index)
+        self.value = value
 
     def __repr__(self):
         return f"<UnOp op={self.op} value={self.value}>"
@@ -190,13 +212,13 @@ class BinOp(Number):
         "!=": lambda l, r: int(l != r),
     }
 
-    def __init__(self, left, op, right):
+    def __init__(self, left, op, right, **kwargs):
         """
         :type op: str
         :type left: Number
         :type right: Number
         """
-        super().__init__()
+        super().__init__(**kwargs)
         self.op = op
         self.left = left
         self.right = right
@@ -216,6 +238,13 @@ class BinOp(Number):
     def children(self):
         return [self.left, self.right]
 
+    def set_child(self, index, value):
+        self._child_set_check(index)
+        if self.children[index] is self.left:
+            self.left = value
+        else:
+            self.right = value
+
     def __repr__(self):
         return f"<BinOp left={self.left} op={self.op} right={self.right}>"
 
@@ -223,12 +252,12 @@ class BinOp(Number):
 class Parenthetical(Number):
     __slots__ = ("value", "operations")
 
-    def __init__(self, value, operations=None):
+    def __init__(self, value, operations=None, **kwargs):
         """
         :type value: Number
         :type operations: list of SetOperator
         """
-        super().__init__()
+        super().__init__(**kwargs)
         if operations is None:
             operations = []
         self.value = value
@@ -246,6 +275,9 @@ class Parenthetical(Number):
     def children(self):
         return self.value.children
 
+    def set_child(self, index, value):
+        self.value.set_child(index, value)
+
     def __repr__(self):
         return f"<Parenthetical value={self.value} operations={self.operations}>"
 
@@ -253,12 +285,12 @@ class Parenthetical(Number):
 class Set(Number):
     __slots__ = ("values", "operations")
 
-    def __init__(self, values, operations=None):
+    def __init__(self, values, operations=None, **kwargs):
         """
         :type values: list of Number
         :type operations: list of SetOperator
         """
-        super().__init__()
+        super().__init__(**kwargs)
         if operations is None:
             operations = []
         self.values = values
@@ -272,6 +304,10 @@ class Set(Number):
     def children(self):
         return self.values
 
+    def set_child(self, index, value):
+        self._child_set_check(index)
+        self.values[index] = value
+
     def __repr__(self):
         return f"<Set values={self.values} operations={self.operations}>"
 
@@ -279,7 +315,7 @@ class Set(Number):
 class Dice(Set):
     __slots__ = ("num", "size", "_context")
 
-    def __init__(self, num, size, values, operations=None, context=None):
+    def __init__(self, num, size, values, operations=None, context=None, **kwargs):
         """
         :type num: int
         :type size: int
@@ -287,7 +323,7 @@ class Dice(Set):
         :type operations: list of SetOperator
         :type context: dice.RollContext
         """
-        super().__init__(values, operations)
+        super().__init__(values, operations, **kwargs)
         self.num = num
         self.size = size
         self._context = context
