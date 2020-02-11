@@ -107,31 +107,45 @@ def simplify_expr(expr, **kwargs):
     Transforms an expression in place by simplifying it (removing all dice and evaluating branches with respect to annotations).
 
     >>> expr = roll("1d20[foo] + 3 - 1d4[bar]").expr
-    >>> simplify_expr(expr.roll)
+    >>> simplify_expr(expr)
     >>> SimpleStringifier().stringify(expr)
     "7 [foo] - 2 [bar] = 5"
 
     :param expr: The expression to transform.
-    :type expr: d20.models.Number
+    :type expr: d20.models.Expression
     :param kwargs: Arguments that are passed to :func:`simplify_expr_annotations`.
     """
-    simplify_expr_annotations(expr, **kwargs)
+    simplify_expr_annotations(expr.roll, **kwargs)
 
-    def do_simplify(node):
+    def do_simplify(node, first=False):
         """returns a pair of (replacement, branch had replacement)"""
         if node.annotation:
             return models.Literal(node.total, annotation=node.annotation), True
 
-        did_replace = False
+        # pass 1: recursively replace branches with annotations, marking which branches had replacements
+        had_replacement = set()
         for i, child in enumerate(node.children):
             replacement, branch_had = do_simplify(child)
-            did_replace = did_replace or branch_had
-            if (not branch_had) and did_replace:  # here is the furthest we can bubble up a no-annotation branch
-                replacement = models.Literal(child.total)
-
+            if branch_had:
+                had_replacement.add(i)
             if replacement is not child:
                 node.set_child(i, replacement)
 
-        return node, did_replace
+        # pass 2: replace no-annotation branches
+        for i, child in enumerate(node.children):
+            if (i not in had_replacement) and (had_replacement or first):
+                # here is the furthest we can bubble up a no-annotation branch
+                replacement = models.Literal(child.total)
+                node.set_child(i, replacement)
 
-    do_simplify(expr)
+        return node, bool(had_replacement)
+
+    do_simplify(expr, True)
+
+
+if __name__ == '__main__':
+    from d20 import roll, SimpleStringifier
+
+    while True:
+        simplify_expr(expr := roll(input()).expr)
+        print(SimpleStringifier().stringify(expr))
