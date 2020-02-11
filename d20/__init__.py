@@ -1,5 +1,6 @@
-from .dice import *
 from . import diceast as ast
+from . import utils
+from .dice import *
 from .errors import *
 from .models import *
 from .stringifiers import *
