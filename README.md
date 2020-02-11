@@ -71,7 +71,7 @@ Operators are always followed by a selector, and operate on the items in the set
 | p | drop | Drops all matched values. |
 | rr | reroll | Rerolls all matched values until none match. (Dice only) |
 | ro | reroll once | Rerolls all matched values once. (Dice only) |
-| ra | reroll and add | Rerolls all matched values once, keeping the original roll. (Dice only) |
+| ra | reroll and add | Rerolls up to one matched value once, keeping the original roll. (Dice only) |
 | e | explode on | Rolls another die for each matched value. (Dice only) |
 | mi | minimum | Sets the minimum value of each die. (Dice only) |
 | ma | maximum | Sets the maximum value of each die. (Dice only) |

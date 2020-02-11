@@ -500,7 +500,7 @@ class SetOperator:  # set_op, dice_op
         """
         :type target: Dice
         """
-        for die in self.select(target):
+        for die in self.select(target)[:1]:
             die.explode()
             target.roll_another()
 

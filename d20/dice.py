@@ -47,7 +47,7 @@ class RollResult:
         """
         self.ast = the_ast
         self.expr = the_roll
-        self.total = the_roll.total
+        self.total = int(the_roll.total)
         self.result = stringifier.stringify(the_roll)
         self.comment = the_roll.comment
 
