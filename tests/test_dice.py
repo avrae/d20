@@ -79,8 +79,8 @@ def test_crit():
 def test_literal():
     assert r("1") == 1
     assert r("10000") == 10000
-    assert r("1.5") == 1.5
-    assert r("0.5") == r(".5") == 0.5
+    assert r("1.5") == 1
+    assert r("0.5") == r(".5") == 0
 
 
 def test_dice():
@@ -107,7 +107,7 @@ def test_binop():
     assert r("2 + 2") == 4
     assert r("2 - 2") == 0
     assert r("2 * 5") == 10
-    assert r("15 / 2") == 7.5
+    assert r("15 / 2") == 7
     assert r("15 // 2") == 7
     assert r("13 % 2") == 1
 

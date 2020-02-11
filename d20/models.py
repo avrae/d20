@@ -419,13 +419,20 @@ class SetOperator:  # set_op, dice_op
     def from_ast(cls, node):
         return cls(node.op, [SetSelector.from_ast(n) for n in node.sels])
 
-    def select(self, target):
+    def select(self, target, max_targets=None):
         """
         :type target: Number
+        :type max_targets: int or None
         """
         out = set()
         for selector in self.sels:
-            out.update(selector.select(target))
+            batch_max = None
+            if max_targets is not None:
+                batch_max = max_targets - len(out)
+                if batch_max == 0:
+                    break
+
+            out.update(selector.select(target, max_targets=batch_max))
         return out
 
     def operate(self, target):
@@ -500,7 +507,7 @@ class SetOperator:  # set_op, dice_op
         """
         :type target: Dice
         """
-        for die in self.select(target)[:1]:
+        for die in self.select(target, max_targets=1):
             die.explode()
             target.roll_another()
 
@@ -550,9 +557,10 @@ class SetSelector:  # selector
     def from_ast(cls, node):
         return cls(node.cat, node.num)
 
-    def select(self, target):
+    def select(self, target, max_targets=None):
         """
         :type target: Number
+        :type max_targets: len
         :return: The targets in the set.
         :rtype: set of Number
         """
@@ -564,7 +572,10 @@ class SetSelector:  # selector
             None: self.literal
         }
 
-        return set(selectors[self.cat](target))
+        selected = selectors[self.cat](target)
+        if max_targets is not None:
+            selected = selected[:max_targets]
+        return set(selected)
 
     def lowestn(self, target):
         return sorted(target.keptset, key=lambda n: n.total)[:self.num]
