@@ -147,5 +147,6 @@ if __name__ == '__main__':
     from d20 import roll, SimpleStringifier
 
     while True:
-        simplify_expr(expr := roll(input()).expr)
+        expr = roll(input()).expr
+        simplify_expr(expr)
         print(SimpleStringifier().stringify(expr))
