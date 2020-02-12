@@ -5,7 +5,7 @@ import lark
 
 from . import diceast as ast, utils
 from .errors import *
-from .models import *
+from .expression import *
 from .stringifiers import MarkdownStringifier
 
 __all__ = ("CritType", "AdvType", "RollContext", "RollResult", "Roller")

@@ -1,8 +1,10 @@
 import abc
 import os
 
-from lark import Lark, Transformer, Token
+from lark import Lark, Token, Transformer
 
+
+# ===== transformer, parser -> ast =====
 
 # noinspection PyMethodMayBeStatic
 # shush, you
@@ -64,13 +66,14 @@ class RollTransformer(Transformer):
         return self._comma
 
 
-class Node(abc.ABC):
+# ===== helper mixin =====
+class ChildMixin:
     @property
     def children(self):
         """
         Returns a list of this node's roll children.
 
-        :rtype: list of Node
+        :rtype: list of ChildMixin
         """
         raise NotImplementedError
 
@@ -79,35 +82,56 @@ class Node(abc.ABC):
         """
         Returns the node's leftmost child, or None if there are no children.
 
-        :rtype: Node or None
+        :rtype: ChildMixin or None
         """
         return self.children[0] if self.children else None
 
     @left.setter
     def left(self, value):
-        self._set_left(value)
+        self.set_child(0, value)
 
     @property
     def right(self):
         """
         Returns the node's rightmost child, or None if there are no children.
 
-        :rtype: Node or None
+        :rtype: ChildMixin or None
         """
         return self.children[-1] if self.children else None
 
     @right.setter
     def right(self, value):
-        self._set_right(value)
+        self.set_child(-1, value)
 
-    def _set_left(self, value):
+    def _child_set_check(self, index):
+        if index > (len(self.children) - 1) or index < -len(self.children):
+            raise IndexError
+
+    def set_child(self, index, value):
         """
-        :type value: Node
+        Sets the ith child of this Number.
+
+        :type index: int
+        :type value: ChildMixin
         """
+        self._child_set_check(index)
         raise NotImplementedError
 
-    def _set_right(self, value):
-        self._set_left(value)  # by default, assume the left and right are the same
+
+# ===== ast classes =====
+class Node(abc.ABC, ChildMixin):
+    # overridden here for type checking
+    def set_child(self, index, value):
+        """
+        :type index: int
+        :type value: Node
+        """
+        super().set_child(index, value)
+
+    @property
+    def children(self):
+        """:rtype: list of Node"""
+        raise NotImplementedError
 
     def __str__(self):
         raise NotImplementedError
@@ -124,7 +148,8 @@ class Expression(Node):  # expr
     def children(self):
         return [self.roll]
 
-    def _set_left(self, value):
+    def set_child(self, index, value):
+        self._child_set_check(index)
         self.roll = value
 
     def __str__(self):
@@ -149,7 +174,8 @@ class AnnotatedNumber(Node):  # numexpr
     def children(self):
         return [self.value]
 
-    def _set_left(self, value):
+    def set_child(self, index, value):
+        self._child_set_check(index)
         self.value = value
 
     def __str__(self):
@@ -173,9 +199,6 @@ class Literal(Node):  # literal
     def children(self):
         return []
 
-    def _set_left(self, value):
-        raise ValueError("Literal object has no children.")
-
     def __str__(self):
         return str(self.value)
 
@@ -194,7 +217,8 @@ class Parenthetical(Node):
     def children(self):
         return [self.value]
 
-    def _set_left(self, value):
+    def set_child(self, index, value):
+        self._child_set_check(index)
         self.value = value
 
     def __str__(self):
@@ -217,7 +241,8 @@ class UnOp(Node):  # u_num
     def children(self):
         return [self.value]
 
-    def _set_left(self, value):
+    def set_child(self, index, value):
+        self._child_set_check(index)
         self.value = value
 
     def __str__(self):
@@ -242,11 +267,12 @@ class BinOp(Node):  # a_num, m_num
     def children(self):
         return [self.left, self.right]
 
-    def _set_left(self, value):
-        self.left = value
-
-    def _set_right(self, value):
-        self.right = value
+    def set_child(self, index, value):
+        self._child_set_check(index)
+        if self.children[index] is self.left:
+            self.left = value
+        else:
+            self.right = value
 
     def __str__(self):
         return f"{str(self.left)} {self.op} {str(self.right)}"
@@ -310,7 +336,8 @@ class OperatedSet(Node):  # set
     def children(self):
         return [self.value]
 
-    def _set_left(self, value):
+    def set_child(self, index, value):
+        self._child_set_check(index)
         self.value = value
 
     def _simplify_operations(self):
@@ -347,11 +374,9 @@ class NumberSet(Node):  # setexpr
     def children(self):
         return self.values
 
-    def _set_left(self, value):
-        self.values[0] = value
-
-    def _set_right(self, value):
-        self.values[-1] = value
+    def set_child(self, index, value):
+        self._child_set_check(index)
+        self.values[index] = value
 
     def __str__(self):
         out = f"{', '.join([str(v) for v in self.values])}"
@@ -386,9 +411,6 @@ class Dice(Node):  # diceexpr
     @property
     def children(self):
         return []
-
-    def _set_left(self, value):
-        raise ValueError("Dice object has no children.")
 
     def __str__(self):
         return f"{self.num}d{self.size}"

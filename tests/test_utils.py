@@ -40,6 +40,39 @@ class TestAstAdvCopy:
             assert str(parse(expr)) == str(tree)
 
 
+class TestTreeMap:
+    def test_ast_map(self):
+        tree = parse("1d20 + 4d6 + 3")
+
+        def mapper(node):
+            if isinstance(node, ast.Dice):
+                node.num = node.num * 2
+            return node
+
+        mapped = utils.tree_map(mapper, tree)
+
+        assert str(mapped) == '2d20 + 8d6 + 3'
+        assert mapped is not tree
+        assert str(tree) == '1d20 + 4d6 + 3'  # make sure it returned a copy
+
+    def test_expr_map(self):
+        expr = roll("1 + 2 + 3").expr
+
+        def mapper(node):
+            if isinstance(node, Literal):
+                copied_values = node.values.copy()
+                copied_values[-1] *= 2
+                node.values = copied_values
+            return node
+
+        mapped = utils.tree_map(mapper, expr)
+
+        assert SimpleStringifier().stringify(mapped) == '2 + 4 + 6 = 12'
+        assert mapped.total == 12
+        assert mapped is not expr
+        assert SimpleStringifier().stringify(expr) == '1 + 2 + 3 = 6'
+
+
 def test_annotation_simplify():
     expr = roll("1 [a] + 2 + 3 [b] + 4").expr
     utils.simplify_expr_annotations(expr, None)

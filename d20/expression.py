@@ -1,6 +1,7 @@
 import abc
 import random
 
+from . import diceast as ast
 from . import errors
 
 __all__ = (
@@ -9,7 +10,8 @@ __all__ = (
 )
 
 
-class Number(abc.ABC):  # num
+# ===== ast -> expression models =====
+class Number(abc.ABC, ast.ChildMixin):  # num
     __slots__ = ("kept", "annotation")
 
     def __init__(self, kept=True, annotation=None):
@@ -61,25 +63,6 @@ class Number(abc.ABC):  # num
         """
         self.kept = False
 
-    @property
-    def children(self):
-        """Returns a list of Numbers that this Number is a parent of."""
-        raise NotImplementedError
-
-    def _child_set_check(self, index):
-        if index > (len(self.children) - 1) or index < -len(self.children):
-            raise IndexError
-
-    def set_child(self, index, value):
-        """
-        Sets the ith child of this Number.
-
-        :type index: int
-        :type value: Number
-        """
-        self._child_set_check(index)
-        raise NotImplementedError
-
     def __int__(self):
         return int(self.total)
 
@@ -88,6 +71,19 @@ class Number(abc.ABC):  # num
 
     def __repr__(self):
         return f"<Number total={self.total} kept={self.kept}>"
+
+    # overridden methods for typechecking
+    def set_child(self, index, value):
+        """
+        :type index: int
+        :type value: Number
+        """
+        super().set_child(index, value)
+
+    @property
+    def children(self):
+        """:rtype: list of Number"""
+        raise NotImplementedError
 
 
 class Expression(Number):

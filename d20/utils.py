@@ -1,6 +1,6 @@
 import copy
 
-from d20 import diceast, models
+from d20 import diceast, expression
 
 
 def ast_adv_copy(ast, advtype):
@@ -55,6 +55,19 @@ def ast_adv_copy(ast, advtype):
     return root
 
 
+def tree_map(func, node):
+    """
+    Returns a copy of the tree, with each node replaced with func(node).
+
+    :type func: typing.Callable[[d20.ast.Node], d20.ast.Node] or typing.Callable[[d20.Number], d20.Number]
+    :type node: d20.ast.ChildMixin
+    """
+    copied = copy.copy(node)
+    for i, child in enumerate(copied.children):
+        copied.set_child(i, tree_map(func, child))
+    return func(copied)
+
+
 def simplify_expr_annotations(expr, ambig_inherit=None):
     """
     Transforms an expression in place by simplifying the annotations using a bubble-up method.
@@ -65,7 +78,7 @@ def simplify_expr_annotations(expr, ambig_inherit=None):
     "1d20 (4) + 3 [foo] = 7"
 
     :param expr: The expression to transform.
-    :type expr: d20.models.Number
+    :type expr: d20.expression.Number
     :param ambig_inherit: When encountering a child node with no annotation and the parent has ambiguous types, which to inherit. Can be None for no inherit, 'left' for leftmost, or 'right' for rightmost.
     :type ambig_inherit: Optional[Literal['left', 'right']]
     """
@@ -112,7 +125,7 @@ def simplify_expr(expr, **kwargs):
     "7 [foo] - 2 [bar] = 5"
 
     :param expr: The expression to transform.
-    :type expr: d20.models.Expression
+    :type expr: d20.expression.Expression
     :param kwargs: Arguments that are passed to :func:`simplify_expr_annotations`.
     """
     simplify_expr_annotations(expr.roll, **kwargs)
@@ -120,7 +133,7 @@ def simplify_expr(expr, **kwargs):
     def do_simplify(node, first=False):
         """returns a pair of (replacement, branch had replacement)"""
         if node.annotation:
-            return models.Literal(node.total, annotation=node.annotation), True
+            return expression.Literal(node.total, annotation=node.annotation), True
 
         # pass 1: recursively replace branches with annotations, marking which branches had replacements
         had_replacement = set()
@@ -135,7 +148,7 @@ def simplify_expr(expr, **kwargs):
         for i, child in enumerate(node.children):
             if (i not in had_replacement) and (had_replacement or first):
                 # here is the furthest we can bubble up a no-annotation branch
-                replacement = models.Literal(child.total)
+                replacement = expression.Literal(child.total)
                 node.set_child(i, replacement)
 
         return node, bool(had_replacement)
