@@ -147,7 +147,7 @@ def tree_map(func, node):
     """
     Returns a copy of the tree, with each node replaced with func(node).
 
-    :type func: typing.Callable[[d20.ast.Node], d20.ast.Node] or typing.Callable[[d20.Number], d20.Number]
+    :type func: typing.Callable[[d20.ast.ChildMixin], d20.ast.ChildMixin]
     :type node: d20.ast.ChildMixin
     """
     copied = copy.copy(node)
