@@ -55,19 +55,6 @@ def ast_adv_copy(ast, advtype):
     return root
 
 
-def tree_map(func, node):
-    """
-    Returns a copy of the tree, with each node replaced with func(node).
-
-    :type func: typing.Callable[[d20.ast.Node], d20.ast.Node] or typing.Callable[[d20.Number], d20.Number]
-    :type node: d20.ast.ChildMixin
-    """
-    copied = copy.copy(node)
-    for i, child in enumerate(copied.children):
-        copied.set_child(i, tree_map(func, child))
-    return func(copied)
-
-
 def simplify_expr_annotations(expr, ambig_inherit=None):
     """
     Transforms an expression in place by simplifying the annotations using a bubble-up method.
@@ -156,10 +143,59 @@ def simplify_expr(expr, **kwargs):
     do_simplify(expr, True)
 
 
-if __name__ == '__main__':
-    from d20 import roll, SimpleStringifier
+def tree_map(func, node):
+    """
+    Returns a copy of the tree, with each node replaced with func(node).
 
-    while True:
-        expr = roll(input()).expr
-        simplify_expr(expr)
-        print(SimpleStringifier().stringify(expr))
+    :type func: typing.Callable[[d20.ast.Node], d20.ast.Node] or typing.Callable[[d20.Number], d20.Number]
+    :type node: d20.ast.ChildMixin
+    """
+    copied = copy.copy(node)
+    for i, child in enumerate(copied.children):
+        copied.set_child(i, tree_map(func, child))
+    return func(copied)
+
+
+def leftmost(root):
+    """
+    Returns the leftmost leaf in this tree.
+
+    :type root: d20.ast.ChildMixin
+    :rtype: d20.ast.ChildMixin
+    """
+    left = root
+    while left.children:
+        left = left.children[0]
+    return left
+
+
+def rightmost(root):
+    """
+    Returns the rightmost leaf in this tree.
+
+    :type root: d20.ast.ChildMixin
+    :rtype: d20.ast.ChildMixin
+    """
+    right = root
+    while right.children:
+        right = right.children[-1]
+    return right
+
+
+def dfs(node, predicate):
+    """
+    Returns the first node in the tree such that predicate(node) is True, searching depth-first left-to-right.
+
+    :type node: d20.ast.ChildMixin
+    :type predicate: typing.Callable[[d20.ast.ChildMixin], bool]
+    :rtype: d20.ast.ChildMixin
+    """
+    if predicate(node):
+        return node
+
+    for child in node.children:
+        result = dfs(child, predicate)
+        if result is not None:
+            return result
+
+    return None

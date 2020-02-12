@@ -239,26 +239,24 @@ Finding the left and right-most operands:
 ...     right = right.children[-1]
 >>> right
 <Literal 4>
+
+>>> from d20 import utils  # these patterns are available in the utils submodule:
+>>> utils.leftmost(binop.expr)
+<Literal 1>
+>>> utils.rightmost(binop.expr)
+<Literal 4>
 ```
+
 
 Searching for the d4:
 ```python
->>> from d20 import roll, Dice, SimpleStringifier
+>>> from d20 import roll, Dice, SimpleStringifier, utils
 
 >>> mixed = roll("-1d8 + 4 - (3, 1d4)kh1")
 >>> str(mixed)
 '-1d8 (**8**) + 4 - (3, ~~1d4 (3)~~)kh1 = `-7`'
 >>> root = mixed.expr
->>> def dfs(node, predicate):
-...     if predicate(node):
-...         return node
-...     for branch in node.children:
-...         result = dfs(branch, predicate)
-...         if result:
-...             return result
-...     return None
-
->>> result = dfs(root, lambda node: isinstance(node, Dice) and node.num == 1 and node.size == 4)
+>>> result = utils.dfs(root, lambda node: isinstance(node, Dice) and node.num == 1 and node.size == 4)
 >>> result
 <Dice num=1 size=4 values=[<Die size=4 values=[<Literal 3>]>] operations=[]>
 >>> SimpleStringifier().stringify(result)
