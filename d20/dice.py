@@ -82,6 +82,12 @@ class RollResult:
     def __str__(self):
         return self.result
 
+    def __int__(self):
+        return self.total
+
+    def __float__(self):
+        return self.expr.total
+
     def __repr__(self):
         return f"<RollResult total={self.total}>"
 
