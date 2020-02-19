@@ -25,14 +25,22 @@ class Stringifier(abc.ABC):
 
     def stringify(self, the_roll):
         """
-        Transforms a rolled expression into a string.
+        Transforms a rolled expression into a string recursively, bottom-up.
 
-        :type the_roll: models.Expression
+        :param the_roll: The expression to stringify.
+        :type the_roll: d20.Expression
         :rtype: str
         """
         return self._stringify(the_roll)
 
     def _stringify(self, node):
+        """
+        Called on each node that needs to be stringified.
+
+        :param node: The node to stringify.
+        :type node: d20.Number
+        :rtype: str
+        """
         handler = self._nodes[type(node)]
         inside = handler(node)
         if node.annotation:
@@ -40,27 +48,67 @@ class Stringifier(abc.ABC):
         return inside
 
     def _str_expression(self, node):
+        """
+        :param node: The node to stringify.
+        :type node: d20.Expression
+        :rtype: str
+        """
         raise NotImplementedError
 
     def _str_literal(self, node):
+        """
+        :param node: The node to stringify.
+        :type node: d20.Literal
+        :rtype: str
+        """
         raise NotImplementedError
 
     def _str_unop(self, node):
+        """
+        :param node: The node to stringify.
+        :type node: d20.UnOp
+        :rtype: str
+        """
         raise NotImplementedError
 
     def _str_binop(self, node):
+        """
+        :param node: The node to stringify.
+        :type node: d20.BinOp
+        :rtype: str
+        """
         raise NotImplementedError
 
     def _str_parenthetical(self, node):
+        """
+        :param node: The node to stringify.
+        :type node: d20.Parenthetical
+        :rtype: str
+        """
         raise NotImplementedError
 
     def _str_set(self, node):
+        """
+        :param node: The node to stringify.
+        :type node: d20.Set
+        :rtype: str
+        """
         raise NotImplementedError
 
     def _str_dice(self, node):
+        """
+        :param node: The node to stringify.
+        :type node: d20.Dice
+        :rtype: str
+        """
         raise NotImplementedError
 
     def _str_die(self, node):
+        """
+        :param node: The node to stringify.
+        :type node: d20.Die
+        :rtype: str
+        """
         raise NotImplementedError
 
     @staticmethod

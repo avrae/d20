@@ -2,7 +2,7 @@ __all__ = ("RollError", "RollSyntaxError", "RollValueError", "TooManyRolls")
 
 
 class RollError(Exception):
-    """Generic exception happened in the roll."""
+    """Generic exception happened in the roll. Base exception for all library exceptions."""
 
     def __init__(self, msg):
         super().__init__(msg)

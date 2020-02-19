@@ -20,7 +20,7 @@ A fast, powerful, and extensible dice engine for D&D, d20 systems, and any other
 ## Installing
 **Requires Python 3.6+**.
 
-```
+```bash
 python3 -m pip install -U d20
 ```
 
@@ -197,7 +197,7 @@ objects, which can be accessed as such:
 <Expression roll=<BinOp left=<BinOp left=<Dice num=3 size=6 values=[<Die size=6 values=[<Literal 4>]>, <Die size=6 values=[<Literal 6>]>, <Die size=6 values=[<Literal 6>]>] operations=[]> op=+ right=<Dice num=1 size=4 values=[<Die size=4 values=[<Literal 1>]>] operations=[]>> op=+ right=<Literal 3>> comment=None>
 ```
 or, in a easier-to-read format,
-```
+```text
 <Expression roll=
     <BinOp left=
         <BinOp left=

@@ -12,33 +12,56 @@ __all__ = ("CritType", "AdvType", "RollContext", "RollResult", "Roller")
 
 
 class CritType(IntEnum):
+    """
+    Integer enumeration representing the crit type of a roll.
+    """
     NONE = 0
     CRIT = 1
     FAIL = 2
 
 
 class AdvType(IntEnum):
+    """
+    Integer enumeration representing at what advantage a roll should be made at.
+    """
     NONE = 0
     ADV = 1
     DIS = -1
 
 
 class RollContext:
+    """
+    A class to track information about rolls to ensure all rolls halt eventually.
+
+    To use this class, pass an instance to the constructor of :class:`d20.Roller`.
+    """
+
     def __init__(self, max_rolls=1000):
         self.max_rolls = max_rolls
         self.rolls = 0
         self.reset()
 
     def reset(self):
+        """Called at the start of each new roll."""
         self.rolls = 0
 
     def count_roll(self, n=1):
+        """
+        Called each time a die is about to be rolled.
+
+        :param int n: The number of rolls about to be made.
+        :raises d20.TooManyRolls: if the roller should stop rolling dice because too many have been rolled.
+        """
         self.rolls += n
         if self.rolls > self.max_rolls:
             raise TooManyRolls("Too many dice rolled.")
 
 
 class RollResult:
+    """
+    Holds information about the result of a roll. This should generally not be constructed manually.
+    """
+
     def __init__(self, the_ast, the_roll, stringifier):
         """
         :type the_ast: ast.Node
@@ -54,9 +77,9 @@ class RollResult:
     @property
     def crit(self):
         """
-        If the leftmost node was Xd20kh1, returns :type:`CritType.CRIT` if the roll was a 20 and
-        :type:`CritType.FAIL` if the roll was a 1.
-        Returns :type:`CritType.NONE` otherwise.
+        If the leftmost node was Xd20kh1, returns :class:`CritType.CRIT` if the roll was a 20 and
+        :class:`CritType.FAIL` if the roll was a 1.
+        Returns :class:`CritType.NONE` otherwise.
 
         :rtype: CritType
         """
@@ -94,7 +117,12 @@ class RollResult:
 
 # noinspection PyMethodMayBeStatic
 class Roller:
-    def __init__(self):
+    """The main class responsible for parsing dice into an AST and evaluating that AST."""
+
+    def __init__(self, context=None):
+        if context is None:
+            context = RollContext()
+
         self._nodes = {
             ast.Expression: self._eval_expression,
             ast.AnnotatedNumber: self._eval_annotatednumber,
@@ -107,8 +135,8 @@ class Roller:
             ast.OperatedDice: self._eval_operateddice,
             ast.Dice: self._eval_dice
         }
-        self.context = RollContext()
         self._parse_cache = cachetools.LFUCache(256)
+        self.context = context
 
     def roll(self, expr, stringifier=None, allow_comments=False, advantage=AdvType.NONE):
         """
@@ -146,7 +174,7 @@ class Roller:
         :param expr: The dice to roll.
         :type expr: str
         :param bool allow_comments: Whether to parse for comments after the main roll expression (potential slowdown)
-        :rtype: ast.Node
+        :rtype: ast.Expression
         """
         try:
             if not allow_comments:

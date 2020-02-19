@@ -12,6 +12,10 @@ __all__ = (
 
 # ===== ast -> expression models =====
 class Number(abc.ABC, ast.ChildMixin):  # num
+    """
+    The base class for all expression objects.
+    """
+
     __slots__ = ("kept", "annotation")
 
     def __init__(self, kept=True, annotation=None):
@@ -43,7 +47,7 @@ class Number(abc.ABC, ast.ChildMixin):  # num
         """
         Returns the set representation of this object.
 
-        :rtype: list of Number
+        :rtype: list[Number]
         """
         raise NotImplementedError
 
@@ -53,7 +57,7 @@ class Number(abc.ABC, ast.ChildMixin):  # num
         Returns the set representation of this object, but only including children whose values
         were not dropped.
 
-        :rtype: list of Number
+        :rtype: list[Number]
         """
         return [n for n in self.set if n.kept]
 
@@ -75,18 +79,22 @@ class Number(abc.ABC, ast.ChildMixin):  # num
     # overridden methods for typechecking
     def set_child(self, index, value):
         """
-        :type index: int
+        Sets the ith child of this Number.
+
+        :param int index: Which child to set.
+        :param value: The Number to set it to.
         :type value: Number
         """
         super().set_child(index, value)
 
     @property
     def children(self):
-        """:rtype: list of Number"""
+        """:rtype: list[Number]"""
         raise NotImplementedError
 
 
 class Expression(Number):
+    """Expressions are usually the root of all Number trees."""
     __slots__ = ("roll", "comment")
 
     def __init__(self, roll, comment, **kwargs):
@@ -118,6 +126,7 @@ class Expression(Number):
 
 
 class Literal(Number):
+    """A literal integer or float."""
     __slots__ = ("values", "exploded")
 
     def __init__(self, value, **kwargs):
@@ -154,6 +163,7 @@ class Literal(Number):
 
 
 class UnOp(Number):
+    """Represents a unary operation."""
     __slots__ = ("op", "value")
 
     UNARY_OPS = {
@@ -191,6 +201,7 @@ class UnOp(Number):
 
 
 class BinOp(Number):
+    """Represents a binary operation."""
     __slots__ = ("op", "left", "right")
 
     BINARY_OPS = {
@@ -246,12 +257,13 @@ class BinOp(Number):
 
 
 class Parenthetical(Number):
+    """Represents a value inside parentheses."""
     __slots__ = ("value", "operations")
 
     def __init__(self, value, operations=None, **kwargs):
         """
         :type value: Number
-        :type operations: list of SetOperator
+        :type operations: list[SetOperator]
         """
         super().__init__(**kwargs)
         if operations is None:
@@ -279,12 +291,13 @@ class Parenthetical(Number):
 
 
 class Set(Number):
+    """Represents a set of values."""
     __slots__ = ("values", "operations")
 
     def __init__(self, values, operations=None, **kwargs):
         """
-        :type values: list of Number
-        :type operations: list of SetOperator
+        :type values: list[Number]
+        :type operations: list[SetOperator]
         """
         super().__init__(**kwargs)
         if operations is None:
@@ -309,6 +322,7 @@ class Set(Number):
 
 
 class Dice(Set):
+    """A set of Die."""
     __slots__ = ("num", "size", "_context")
 
     def __init__(self, num, size, values, operations=None, context=None, **kwargs):
@@ -316,7 +330,7 @@ class Dice(Set):
         :type num: int
         :type size: int
         :type values: list of Die
-        :type operations: list of SetOperator
+        :type operations: list[SetOperator]
         :type context: dice.RollContext
         """
         super().__init__(values, operations, **kwargs)
@@ -340,6 +354,7 @@ class Dice(Set):
 
 
 class Die(Number):  # part of diceexpr
+    """Represents a single die."""
     __slots__ = ("size", "values", "_context")
 
     def __init__(self, size, values, context=None):
@@ -400,13 +415,14 @@ class Die(Number):  # part of diceexpr
 # noinspection PyUnresolvedReferences
 # selecting on Dice will always return Die
 class SetOperator:  # set_op, dice_op
+    """Represents an operation on a set."""
     __slots__ = ("op", "sels")
     OPERATIONS = {"k", "p", "rr", "ro", "ra", "e", "mi", "ma"}
 
     def __init__(self, op, sels):
         """
         :type op: str
-        :type sels: list of SetSelector
+        :type sels: list[SetSelector]
         """
         self.op = op
         self.sels = sels
@@ -417,8 +433,12 @@ class SetOperator:  # set_op, dice_op
 
     def select(self, target, max_targets=None):
         """
+        Selects the operands in a target set.
+
+        :param target: The source of the operands.
         :type target: Number
-        :type max_targets: int or None
+        :param max_targets: The maximum number of targets to select.
+        :type max_targets: Optional[int]
         """
         out = set()
         for selector in self.sels:
@@ -433,8 +453,9 @@ class SetOperator:  # set_op, dice_op
 
     def operate(self, target):
         """
-        Operates in place on the values in a base set.
+        Operates in place on the values in a target set.
 
+        :param target: The source of the operands.
         :type target: Number
         """
         operations = {
@@ -539,6 +560,7 @@ class SetOperator:  # set_op, dice_op
 
 
 class SetSelector:  # selector
+    """Represents a selection on a set."""
     __slots__ = ("cat", "num")
 
     def __init__(self, cat, num):
@@ -555,8 +577,11 @@ class SetSelector:  # selector
 
     def select(self, target, max_targets=None):
         """
+        Selects operands from a target set.
+
+        :param target: The source of the operands.
         :type target: Number
-        :type max_targets: len
+        :param int max_targets: The maximum number of targets to select.
         :return: The targets in the set.
         :rtype: set of Number
         """
