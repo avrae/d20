@@ -5,6 +5,8 @@
 [![PyPI pyversions](https://img.shields.io/pypi/pyversions/d20.svg)](https://pypi.python.org/pypi/d20/)
 ![](https://github.com/avrae/d20/workflows/Test%20Package/badge.svg)
 [![codecov](https://codecov.io/gh/avrae/d20/branch/master/graph/badge.svg)](https://codecov.io/gh/avrae/d20)
+[![Documentation Status](https://readthedocs.org/projects/d20/badge/?version=latest)](https://d20.readthedocs.io/en/latest/start.html?badge=latest)
+
 
 
 
@@ -38,6 +40,10 @@ python3 -m pip install -U d20
 >>> str(result.ast)
 '1d20 + 5'
 ```
+
+## Documentation
+
+Check out the docs on [Read the Docs](https://d20.readthedocs.io/en/latest/start.html)!
 
 ## Dice Syntax
 This is the grammar supported by the dice parser, roughly ordered in how tightly the grammar binds.
@@ -292,7 +298,3 @@ $ python3 -m timeit -s "from d20 import roll; expr='1d20+'*50+'1d20'" "roll(expr
 $ python3 -m timeit -s "from d20 import roll" "roll('10d20rr<20')"
 1000 loops, best of 5: 1.26 msec per loop
 ```
-
-## Documentation
-
-TODO
