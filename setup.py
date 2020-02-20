@@ -8,7 +8,7 @@ with open("requirements.txt", "r") as fh:
 
 setuptools.setup(
     name="d20",
-    version="0.7.0",
+    version="1.0.0rc1",
     author="Andrew Zhu",
     author_email="andrew@zhu.codes",
     description="A formal grammar-based dice parser and roller for D&D and other dice systems.",
@@ -23,6 +23,8 @@ setuptools.setup(
         "Programming Language :: Python :: 3.8",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
+        "Topic :: Games/Entertainment :: Board Games",
+        "Topic :: Games/Entertainment :: Role-Playing",
     ],
     python_requires='>=3.6',
     install_requires=requirements,
