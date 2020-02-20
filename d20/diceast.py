@@ -68,6 +68,8 @@ class RollTransformer(Transformer):
 
 # ===== helper mixin =====
 class ChildMixin:
+    """A mixin that tree nodes must implement to support tree traversal utilities."""
+
     @property
     def children(self):
         """
@@ -109,9 +111,10 @@ class ChildMixin:
 
     def set_child(self, index, value):
         """
-        Sets the ith child of this Number.
+        Sets the ith child of this object.
 
-        :type index: int
+        :param int index: The index of the value to set.
+        :param value: The new value to set it to.
         :type value: ChildMixin
         """
         self._child_set_check(index)
@@ -120,10 +123,19 @@ class ChildMixin:
 
 # ===== ast classes =====
 class Node(abc.ABC, ChildMixin):
+    """
+    The base class for all AST nodes.
+
+    A Node has no specific attributes, but supports all the methods in :class:`~d20.ast.ChildMixin` for traversal.
+    """
+
     # overridden here for type checking
     def set_child(self, index, value):
         """
-        :type index: int
+        Sets the ith child of this Node.
+
+        :param int index: Which child to set.
+        :param value: The Node to set it to.
         :type value: Node
         """
         super().set_child(index, value)
@@ -138,6 +150,7 @@ class Node(abc.ABC, ChildMixin):
 
 
 class Expression(Node):  # expr
+    """Expressions are usually the root of all ASTs."""
     __slots__ = ("roll", "comment")
 
     def __init__(self, roll, comment=None):
@@ -159,6 +172,7 @@ class Expression(Node):  # expr
 
 
 class AnnotatedNumber(Node):  # numexpr
+    """Represents a value with an annotation."""
     __slots__ = ("value", "annotations")
 
     def __init__(self, value, *annotations):

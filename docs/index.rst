@@ -14,6 +14,7 @@ Welcome to d20's documentation!
    api
    expression
    ast
+   utils
 
 
 

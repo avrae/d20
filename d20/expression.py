@@ -14,6 +14,8 @@ __all__ = (
 class Number(abc.ABC, ast.ChildMixin):  # num
     """
     The base class for all expression objects.
+
+    Note that Numbers implement all the methods of a :class:`~d20.ast.ChildMixin`.
     """
 
     __slots__ = ("kept", "annotation")

@@ -7,6 +7,7 @@ for the Expression object returned by ``parse(...)``, check out :ref:`Abstract S
 
 .. autoclass:: d20.Number
     :members: number, total, set, keptset, drop
+    :show-inheritance:
 
     .. attribute:: kept
         :type: bool
