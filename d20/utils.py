@@ -94,9 +94,14 @@ def simplify_expr_annotations(expr, ambig_inherit=None):
             for child in node.children:
                 child.annotation = None
         # if there are ambiguous types, resolve children by ambiguity rules
+        # unless it would change the right side of a multiplicative binop
         elif len(possible_types) and ambig_inherit is not None:
-            for child in node.children:
-                if child_possibilities[child]:
+            for i, child in enumerate(node.children):
+                if child_possibilities[child]:  # if the child already provides an annotation or ambiguity
+                    continue
+                elif isinstance(node, expression.BinOp) \
+                        and node.op in {'*', '/', '//', '%'} \
+                        and i:  # if the child is the right side of a multiplicative binop
                     continue
                 elif ambig_inherit == 'left':
                     child.annotation = possible_types[0]
