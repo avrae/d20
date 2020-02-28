@@ -40,18 +40,28 @@ class TestAstAdvCopy:
             assert str(parse(expr)) == str(tree)
 
 
-def test_annotation_simplify():
-    expr = roll("1 [a] + 2 + 3 [b] + 4").expr
-    utils.simplify_expr_annotations(expr, None)
-    assert SimpleStringifier().stringify(expr) == "1 + 2 [a] + 3 [b] + 4 = 10"
+class TestAnnotationSimplify:
+    def test_annotation_simplify(self):
+        expr = roll("1 [a] + 2 + 3 [b] + 4").expr
+        utils.simplify_expr_annotations(expr, None)
+        assert SimpleStringifier().stringify(expr) == "1 + 2 [a] + 3 [b] + 4 = 10"
 
-    expr = roll("1 [a] + 2 + 3 [b] + 4").expr
-    utils.simplify_expr_annotations(expr, 'left')
-    assert SimpleStringifier().stringify(expr) == "1 + 2 [a] + 3 [b] + 4 [a] = 10"
+        expr = roll("1 [a] + 2 + 3 [b] + 4").expr
+        utils.simplify_expr_annotations(expr, 'left')
+        assert SimpleStringifier().stringify(expr) == "1 + 2 [a] + 3 [b] + 4 [a] = 10"
 
-    expr = roll("1 [a] + 2 + 3 [b] + 4").expr
-    utils.simplify_expr_annotations(expr, 'right')
-    assert SimpleStringifier().stringify(expr) == "1 + 2 [a] + 3 [b] + 4 [b] = 10"
+        expr = roll("1 [a] + 2 + 3 [b] + 4").expr
+        utils.simplify_expr_annotations(expr, 'right')
+        assert SimpleStringifier().stringify(expr) == "1 + 2 [a] + 3 [b] + 4 [b] = 10"
+
+        expr = roll("1 [a] + 2 + 3 [a] + 4").expr
+        utils.simplify_expr_annotations(expr.roll)
+        assert SimpleStringifier().stringify(expr) == "1 + 2 + 3 + 4 [a] = 10"
+
+    def test_parenthetical_annotation(self):
+        expr = roll("(1 [a])").expr
+        utils.simplify_expr_annotations(expr.roll)
+        assert SimpleStringifier().stringify(expr) == "(1) [a] = 1"
 
 
 def test_simplify():

@@ -74,7 +74,7 @@ def simplify_expr_annotations(expr, ambig_inherit=None):
     :type expr: d20.Number
     :param ambig_inherit: When encountering a child node with no annotation and the parent has ambiguous types, which \
     to inherit. Can be ``None`` for no inherit, ``'left'`` for leftmost, or ``'right'`` for rightmost.
-    :type ambig_inherit: str
+    :type ambig_inherit: Optional[str]
     """
     if ambig_inherit not in ('left', 'right', None):
         raise ValueError("ambig_inherit must be 'left', 'right', or None.")

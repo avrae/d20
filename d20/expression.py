@@ -283,10 +283,11 @@ class Parenthetical(Number):
 
     @property
     def children(self):
-        return self.value.children
+        return [self.value]
 
     def set_child(self, index, value):
-        self.value.set_child(index, value)
+        self._child_set_check(index)
+        self.value = value
 
     def __repr__(self):
         return f"<Parenthetical value={self.value} operations={self.operations}>"
