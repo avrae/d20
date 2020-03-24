@@ -183,6 +183,8 @@ class Roller:
                 return self._parse_with_comments(expr)
         except lark.UnexpectedToken as ut:
             raise RollSyntaxError(ut.line, ut.column, ut.token, ut.expected)
+        except lark.UnexpectedCharacters as uc:
+            raise RollSyntaxError(uc.line, uc.column, expr[uc.pos_in_stream], uc.allowed)
 
     def _parse_no_comment(self, expr):
         # see if this expr is in cache
@@ -196,9 +198,9 @@ class Roller:
     def _parse_with_comments(self, expr):
         try:
             return ast.parser.parse(expr, start='commented_expr')
-        except lark.UnexpectedToken as ut:
+        except lark.UnexpectedInput as ui:
             # if the statement up to the unexpected token ends with an operator, remove that from the end
-            successful_fragment = expr[:ut.pos_in_stream]
+            successful_fragment = expr[:ui.pos_in_stream]
             for op in SetOperator.OPERATIONS:
                 if successful_fragment.endswith(op):
                     successful_fragment = successful_fragment[:-len(op)]
