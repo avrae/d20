@@ -70,9 +70,16 @@ class RollResult:
         """
         self.ast = the_ast
         self.expr = the_roll
-        self.total = int(the_roll.total)
-        self.result = stringifier.stringify(the_roll)
+        self.stringifier = stringifier
         self.comment = the_roll.comment
+
+    @property
+    def total(self):
+        return int(self.expr.total)
+
+    @property
+    def result(self):
+        return self.stringifier.stringify(self.expr)
 
     @property
     def crit(self):

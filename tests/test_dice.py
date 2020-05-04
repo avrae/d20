@@ -197,3 +197,13 @@ def test_ma_op():
     assert r("10d6ma1") == 10
     assert r("10d6ma0") == 0
     assert 10 <= r("10d6ma5") <= 50
+
+
+# modifying the tree directly
+def test_correct_results():
+    result = roll("1+2+3")
+    assert result.total == 6
+    assert result.result == "1 + 2 + 3 = `6`"
+    result.expr.roll = BinOp(result.expr.roll, '+', Literal(4))
+    assert result.total == 10
+    assert result.result == "1 + 2 + 3 + 4 = `10`"
