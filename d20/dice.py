@@ -10,6 +10,8 @@ from .stringifiers import MarkdownStringifier
 
 __all__ = ("CritType", "AdvType", "RollContext", "RollResult", "Roller")
 
+POSSIBLE_COMMENT_AMBIGUITIES = {"k", "p", "rr", "ro", "ra", "e", "mi", "ma", "*", "d"}
+
 
 class CritType(IntEnum):
     """
@@ -208,7 +210,7 @@ class Roller:
         except lark.UnexpectedInput as ui:
             # if the statement up to the unexpected token ends with an operator, remove that from the end
             successful_fragment = expr[:ui.pos_in_stream]
-            for op in SetOperator.OPERATIONS:
+            for op in POSSIBLE_COMMENT_AMBIGUITIES:
                 if successful_fragment.endswith(op):
                     successful_fragment = successful_fragment[:-len(op)]
                     force_comment = expr[len(successful_fragment):]

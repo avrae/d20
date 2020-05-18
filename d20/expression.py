@@ -420,7 +420,6 @@ class Die(Number):  # part of diceexpr
 class SetOperator:  # set_op, dice_op
     """Represents an operation on a set."""
     __slots__ = ("op", "sels")
-    OPERATIONS = {"k", "p", "rr", "ro", "ra", "e", "mi", "ma"}
 
     def __init__(self, op, sels):
         """

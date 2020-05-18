@@ -12,6 +12,8 @@ def test_comments():
     with pytest.raises(RollSyntaxError):
         roll("1d20 foo bar", allow_comments=False)
 
+
+def test_conflicting_comments():
     # expressions with ambiguity
     r = roll("1d20 keep something", allow_comments=True)
     assert 1 <= r.total <= 20
@@ -19,6 +21,20 @@ def test_comments():
 
     with pytest.raises(RollSyntaxError):
         roll("1d20 keep something", allow_comments=False)
+
+    r = roll("1d20 damage", allow_comments=True)
+    assert 1 <= r.total <= 20
+    assert r.comment == "damage"
+
+    with pytest.raises(RollSyntaxError):
+        roll("1d20 damage", allow_comments=False)
+
+    r = roll("1d20 **bold**", allow_comments=True)
+    assert 1 <= r.total <= 20
+    assert r.comment == "**bold**"
+
+    with pytest.raises(RollSyntaxError):
+        roll("1d20 **bold**", allow_comments=False)
 
 
 def test_advantage():
