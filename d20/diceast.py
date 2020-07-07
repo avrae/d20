@@ -182,7 +182,7 @@ class AnnotatedNumber(Node):  # numexpr
         """
         super().__init__()
         self.value = value
-        self.annotations = [str(a) for a in annotations]
+        self.annotations = [str(a).strip() for a in annotations]
 
     @property
     def children(self):
