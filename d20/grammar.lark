@@ -5,27 +5,27 @@ commented_expr: num COMMENT?
 // ^ starting node for commented rolls
 
 // comments are given -1 priority - only match comment if no other possibilities
-COMMENT.-1: /.+/
+COMMENT.-1: _WS? /.+/
 
 // math and operators, PMDAS
 ?num: comparison
 
-?comparison: (comparison COMP_OPERATOR)? a_num
+?comparison: (comparison COMP_OPERATOR _WS?)? a_num _WS?
 COMP_OPERATOR: "==" | ">=" | "<=" | "!=" | "<" | ">"
 
-?a_num: (a_num A_OP)? m_num
+?a_num: (a_num A_OP _WS?)? m_num _WS?
 A_OP: "+" | "-"
 
-?m_num: (m_num M_OP)? u_num
+?m_num: (m_num M_OP _WS?)? u_num _WS?
 M_OP: "*" | "//" | "/" | "%"
 
-?u_num: numexpr | U_OP u_num
+?u_num: numexpr | U_OP _WS? u_num
 U_OP: "+" | "-"
 
 // numbers
-?numexpr: (dice | set | literal) ANNOTATION*
+?numexpr: (dice | set | literal) _WS? ANNOTATION*
 
-ANNOTATION: /\[.*?\]/
+ANNOTATION: /\[.*?\]/ _WS?
 
 literal: INTEGER | DECIMAL
 
@@ -35,7 +35,7 @@ literal: INTEGER | DECIMAL
 set_op: SET_OPERATOR selector
 SET_OPERATOR: "k" | "p"
 
-setexpr: "(" (num ("," num)* comma?)? ")"
+setexpr: "(" _WS? (num (_WS? "," _WS? num)* _WS? comma? _WS?)? _WS? ")"
 comma: ","
 
 // dice
@@ -50,8 +50,9 @@ selector: [SELTYPE] INTEGER
 
 SELTYPE: "l" | "h" | "<" | ">"
 
+// whitespace
+_WS: /[ \t\f\r\n]/+
+
 // useful constants
-%import common.WS_INLINE
 %import common.INT -> INTEGER
 %import common.DECIMAL
-%ignore WS_INLINE

@@ -10,7 +10,7 @@ from .stringifiers import MarkdownStringifier
 
 __all__ = ("CritType", "AdvType", "RollContext", "RollResult", "Roller")
 
-POSSIBLE_COMMENT_AMBIGUITIES = {"k", "p", "rr", "ro", "ra", "e", "mi", "ma", "*", "d"}
+POSSIBLE_COMMENT_AMBIGUITIES = {"*", }
 
 
 class CritType(IntEnum):

@@ -36,6 +36,13 @@ def test_conflicting_comments():
     with pytest.raises(RollSyntaxError):
         roll("1d20 **bold**", allow_comments=False)
 
+    r = roll("1d20 please save me from this parsing weirdness", allow_comments=True)
+    assert 1 <= r.total <= 20
+    assert r.comment == "please save me from this parsing weirdness"
+
+    with pytest.raises(RollSyntaxError):
+        roll("1d20 please save me from this parsing weirdness", allow_comments=False)
+
 
 def test_advantage():
     r = roll("1d20", advantage=AdvType.ADV)
