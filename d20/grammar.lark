@@ -44,7 +44,9 @@ comma: ","
 dice_op: (DICE_OPERATOR | SET_OPERATOR) selector
 DICE_OPERATOR: "rr" | "ro" | "ra" | "e" | "mi" | "ma"
 
-diceexpr: INTEGER? "d" INTEGER
+diceexpr: INTEGER? "d" DICE_VALUE
+
+DICE_VALUE: INTEGER | "%"
 
 selector: [SELTYPE] INTEGER
 
