@@ -264,4 +264,5 @@ class Roller:
         return self._eval_operatedset(node)
 
     def _eval_dice(self, node):
-        return Dice.new(node.num, node.size, context=self.context)
+        size = DiceSize.from_ast(node.size)
+        return Dice.new(node.num, size, context=self.context)

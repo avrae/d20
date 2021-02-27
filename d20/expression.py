@@ -6,7 +6,7 @@ from . import errors
 
 __all__ = (
     "Number", "Expression", "Literal", "UnOp", "BinOp", "Parenthetical", "Set", "Dice", "Die",
-    "SetOperator", "SetSelector"
+    "DiceSize", "SetOperator", "SetSelector"
 )
 
 
@@ -331,7 +331,7 @@ class Dice(Set):
     def __init__(self, num, size, values, operations=None, context=None, **kwargs):
         """
         :type num: int
-        :type size: int|str
+        :type size: DiceSize
         :type values: list of Die
         :type operations: list[SetOperator]
         :type context: dice.RollContext
@@ -362,7 +362,7 @@ class Die(Number):  # part of diceexpr
 
     def __init__(self, size, values, context=None):
         """
-        :type size: int
+        :type size: DiceSize
         :type values: list of Literal
         :type context: dice.RollContext
         """
@@ -390,14 +390,14 @@ class Die(Number):  # part of diceexpr
         return []
 
     def _add_roll(self):
-        if self.size != '%' and self.size < 1:
+        if self.size != '%' and self.size.size < 1:
             raise errors.RollValueError("Cannot roll a 0-sided die.")
         if self._context:
             self._context.count_roll()
         if self.size == '%':
             n = Literal(random.randrange(0, 100, 10))
         else:
-            n = Literal(random.randrange(self.size) + 1)  # 200ns faster than randint(1, self._size)
+            n = Literal(random.randrange(self.size.size) + 1)  # 200ns faster than randint(1, self._size)
         self.values.append(n)
 
     def reroll(self):
@@ -416,6 +416,29 @@ class Die(Number):  # part of diceexpr
 
     def __repr__(self):
         return f"<Die size={self.size} values={self.values}>"
+
+
+class DiceSize:
+    __slots__ = ("size",)
+
+    def __init__(self, size):
+        """
+        :type size: int or str
+        """
+        self.size = size
+
+    @classmethod
+    def from_ast(cls, node):
+        return cls(node.size)
+
+    def __eq__(self, other):
+        return self.size == other
+
+    def __repr__(self):
+        return f"<DiceSize size={self.size}>"
+
+    def __str__(self):
+        return str(self.size)
 
 
 # noinspection PyUnresolvedReferences

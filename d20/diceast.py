@@ -55,16 +55,12 @@ class RollTransformer(Transformer):
         return SetOperator.new(*opsel)
 
     def diceexpr(self, dice):
-        reduced_dice = []
-        for token in dice:
-            if isinstance(token, Token):
-                reduced_dice.append(token)
-            else:
-                reduced_dice.append(token.children[0])
+        if len(dice) == 1:
+            return Dice(1, *dice)
+        return Dice(*dice)
 
-        if len(reduced_dice) == 1:
-            return Dice(1, *reduced_dice)
-        return Dice(*reduced_dice)
+    def dice_size(self, size):
+        return DiceSize(*size)
 
     def selector(self, sel):
         return SetSelector(*sel)
@@ -423,21 +419,45 @@ class Dice(Node):  # diceexpr
     def __init__(self, num, size):
         """
         :type num: lark.Token or int
-        :type size: lark.Token or int
+        :type size: DiceSize or int or str
         """
         super().__init__()
         self.num = int(num)
-        if size.value == "%":
-            self.size = size.value
+        if not isinstance(size, DiceSize):
+            self.size = DiceSize(size)
         else:
-            self.size = int(size)
+            self.size = size
 
     @property
     def children(self):
         return []
 
     def __str__(self):
-        return f"{self.num}d{self.size}"
+        return f"{self.num}d{str(self.size)}"
+
+
+class DiceSize(Node):
+    __slots__ = ("size",)
+
+    def __init__(self, size):
+        """
+        :type size: lark.Token or int or str
+        """
+        super().__init__()
+        if isinstance(size, Token):
+            self.size = int(size) if size.type == 'INTEGER' else str(size)
+        else:
+            self.size = size
+
+    @property
+    def children(self):
+        return []
+
+    def __eq__(self, other):
+        return self.size == other
+
+    def __str__(self):
+        return str(self.size)
 
 
 with open(os.path.join(os.path.dirname(__file__), 'grammar.lark')) as f:
