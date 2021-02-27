@@ -55,9 +55,16 @@ class RollTransformer(Transformer):
         return SetOperator.new(*opsel)
 
     def diceexpr(self, dice):
-        if len(dice) == 1:
-            return Dice(1, *dice)
-        return Dice(*dice)
+        reduced_dice = []
+        for token in dice:
+            if isinstance(token, Token):
+                reduced_dice.append(token)
+            else:
+                reduced_dice.append(token.children[0])
+
+        if len(reduced_dice) == 1:
+            return Dice(1, *reduced_dice)
+        return Dice(*reduced_dice)
 
     def selector(self, sel):
         return SetSelector(*sel)
@@ -420,7 +427,10 @@ class Dice(Node):  # diceexpr
         """
         super().__init__()
         self.num = int(num)
-        self.size = int(size)
+        if size.value == "%":
+            self.size = size.value
+        else:
+            self.size = int(size)
 
     @property
     def children(self):

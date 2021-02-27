@@ -3,7 +3,7 @@ import pytest
 from d20 import *
 
 STANDARD_EXPRESSIONS = [
-    '1d20', '1+1', '4d6kh3', '(1)', '(1,)', '((1d6))', '4*(3d8kh2+9[fire]+(9d2e2+3[cold])/2)',
+    '1d20', '1d%', '1+1', '4d6kh3', '(1)', '(1,)', '((1d6))', '4*(3d8kh2+9[fire]+(9d2e2+3[cold])/2)',
     '(1d4, 2+2, 3d6kl1)kh1', '((10d6kh5)kl2)kh1'
 ]
 
@@ -29,11 +29,14 @@ def test_roll_types():
 
 
 def test_sane_totals():
-    assert 1 <= r("1d20") <= 20
-    assert 3 <= r("4d6kh3") <= 18
-    assert 1 <= r("(((1d6)))") <= 6
-    assert 4 <= r("(1d4, 2+2, 3d6kl1)kh1") <= 6
-    assert 1 <= r("((10d6kh5)kl2)kh1") <= 6
+    for _ in range(1000):
+        assert 1 <= r("1d20") <= 20
+        assert 0 <= r("1d%") <= 90
+        assert 0 <= r("1d%") % 10 <= 9
+        assert 3 <= r("4d6kh3") <= 18
+        assert 1 <= r("(((1d6)))") <= 6
+        assert 4 <= r("(1d4, 2+2, 3d6kl1)kh1") <= 6
+        assert 1 <= r("((10d6kh5)kl2)kh1") <= 6
 
 
 def test_pemdas():
@@ -84,10 +87,15 @@ def test_literal():
 
 
 def test_dice():
-    assert r("0d6") == 0
-    assert 1 <= r("d6") <= 6
-    assert 1 <= r("1d6") <= 6
-    assert 2 <= r("2d6") <= 12
+    for _ in range(1000):
+        assert r("0d6") == 0
+        assert 1 <= r("d6") <= 6
+        assert 1 <= r("1d6") <= 6
+        assert 2 <= r("2d6") <= 12
+        assert r("0d%") == 0
+        assert 0 <= r("d%") <= 90
+        assert 0 <= r("1d%") <= 90
+        assert 0 <= r("2d%") <= 180
 
 
 def test_set():
@@ -110,6 +118,16 @@ def test_binop():
     assert r("15 / 2") == 7
     assert r("15 // 2") == 7
     assert r("13 % 2") == 1
+
+
+def test_binop_dice():
+    for _ in range(1000):
+        assert 3 <= r("2 + 1d6") <= 8
+        assert 2 <= r("2 * 1d6") <= 12
+        assert r("60 / 1d6") in [60, 30, 20, 15, 12, 10]
+        assert r("60 // 1d6") in [60, 30, 20, 15, 12, 10]
+        assert r("1d100 % 10") <= 10
+        assert r("1d% % 10") <= 10
 
 
 def test_div_zero():
