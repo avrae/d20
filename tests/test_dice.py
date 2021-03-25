@@ -33,6 +33,7 @@ def test_sane_totals():
         assert 1 <= r("1d20") <= 20
         assert 0 <= r("1d%") <= 90
         assert 0 <= r("1d%") % 10 <= 9
+        assert r("1d%") % 10 == 0
         assert 3 <= r("4d6kh3") <= 18
         assert 1 <= r("(((1d6)))") <= 6
         assert 4 <= r("(1d4, 2+2, 3d6kl1)kh1") <= 6
