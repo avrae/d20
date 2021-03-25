@@ -1,1 +1,2 @@
 include d20/grammar.lark
+include requirements.txt
