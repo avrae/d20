@@ -204,25 +204,34 @@ objects, which can be accessed as such:
 ```
 or, in a easier-to-read format,
 ```text
-<Expression roll=
-    <BinOp left=
-        <BinOp left=
-            <Dice num=3 size=6 values=
-                [
+<Expression 
+    roll=<BinOp
+        left=<BinOp
+            left=<Dice
+                num=3
+                size=6
+                values=[
                     <Die size=6 values=[<Literal 4>]>,
                     <Die size=6 values=[<Literal 6>]>,
                     <Die size=6 values=[<Literal 6>]>
                 ]
-                operations=[]>
+                operations=[]
+            >
             op=+
-            right=<Dice num=1 size=4 values=
-                [<Die size=4 values=[<Literal 1>]>]
-            operations=[]>
+            right=<Dice
+                num=1
+                size=4
+                values=[
+                    <Die size=4 values=[<Literal 1>]>
+                ]
+                operations=[]
+            >
         >
         op=+
         right=<Literal 3>
     >
-comment=None>
+    comment=None
+>
 ```
 From here, `Expression.children` returns a tree of nodes representing the expression from left to right, each of which
 may have children of their own. This can be used to easily search for specific dice, look for the left-most operand,
