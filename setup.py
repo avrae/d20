@@ -8,7 +8,7 @@ with open("requirements.txt", "r") as fh:
 
 setuptools.setup(
     name="d20",
-    version="1.1.0",
+    version="1.1.1",
     author="Andrew Zhu",
     author_email="andrew@zhu.codes",
     description="A formal grammar-based dice parser and roller for D&D and other dice systems.",
