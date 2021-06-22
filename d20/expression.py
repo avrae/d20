@@ -323,6 +323,9 @@ class Set(Number):
     def __repr__(self):
         return f"<Set values={self.values} operations={self.operations}>"
 
+    def __copy__(self):
+        return Set(values=self.values.copy(), operations=self.operations.copy())
+
 
 class Dice(Set):
     """A set of Die."""
@@ -354,6 +357,10 @@ class Dice(Set):
 
     def __repr__(self):
         return f"<Dice num={self.num} size={self.size} values={self.values} operations={self.operations}>"
+
+    def __copy__(self):
+        return Dice(num=self.num, size=self.size, context=self._context,
+                    values=self.values.copy(), operations=self.operations.copy(), )
 
 
 class Die(Number):  # part of diceexpr

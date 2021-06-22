@@ -118,6 +118,37 @@ class TestTreeMap:
         assert mapped is not expr
         assert SimpleStringifier().stringify(expr) == '1 + 2 + 3 = 6'
 
+    def test_ast_map_set_copy(self):  # avrae/avrae#1537
+        tree = parse("(1d6, 1d6)kh1")
+
+        def mapper(node):
+            if isinstance(node, ast.Dice):
+                return ast.Dice(node.num * 2, node.size)
+            return node
+
+        mapped = utils.tree_map(mapper, tree)
+
+        assert str(mapped) == '(2d6, 2d6)kh1'
+        assert mapped is not tree
+        assert str(tree) == '(1d6, 1d6)kh1'
+
+    def test_expr_map_set_copy(self):
+        expr = roll("(1, 2, 3)").expr
+
+        def mapper(node):
+            if isinstance(node, Literal):
+                copied_values = node.values.copy()
+                copied_values[-1] *= 2
+                node.values = copied_values
+            return node
+
+        mapped = utils.tree_map(mapper, expr)
+
+        assert SimpleStringifier().stringify(mapped) == '(2, 4, 6) = 12'
+        assert mapped.total == 12
+        assert mapped is not expr
+        assert SimpleStringifier().stringify(expr) == '(1, 2, 3) = 6'
+
 
 def test_leftmost():
     tree = parse("1d20 + 4d6 + 3")

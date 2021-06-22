@@ -398,6 +398,10 @@ class NumberSet(Node):  # setexpr
             return f"({out},)"
         return f"({out})"
 
+    def __copy__(self):
+        # we need to take a copy of the values list as well
+        return NumberSet(values=self.values.copy())
+
 
 class OperatedDice(OperatedSet):  # dice
     __slots__ = ()
