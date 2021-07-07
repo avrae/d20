@@ -83,7 +83,7 @@ def test_simplify():
 
     expr = roll("8d6 [fire]").expr
     utils.simplify_expr(expr)
-    assert re.match(r"(\d+) \[fire\] = \1", SimpleStringifier().stringify(expr))
+    assert re.match(r"(\d+) \[fire] = \1", SimpleStringifier().stringify(expr))
 
 
 class TestTreeMap:

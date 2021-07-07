@@ -1,24 +1,28 @@
 import copy
+from typing import Callable, Optional, TypeVar
 
+import d20  # this import is here for the doctests
 from d20 import diceast, expression
+from .dice import AdvType
+
+TreeType = TypeVar('TreeType', bound=diceast.ChildMixin)
+ASTNode = TypeVar('ASTNode', bound=diceast.Node)
+ExpressionNode = TypeVar('ExpressionNode', bound=expression.Number)
 
 
-def ast_adv_copy(ast, advtype):
+def ast_adv_copy(ast: ASTNode, advtype: AdvType) -> ASTNode:
     """
     Returns a minimally shallow copy of a dice AST with respect to advantage.
 
-    >>> tree = parse("1d20 + 5")
+    >>> tree = d20.parse("1d20 + 5")
     >>> str(tree)
     '1d20 + 5'
-    >>> str(ast_adv_copy(tree, AdvType.ADV))
+    >>> str(ast_adv_copy(tree, d20.AdvType.ADV))
     '2d20kh1 + 5'
 
     :param ast: The parsed AST.
-    :type ast: d20.ast.Node
     :param advtype: The advantage type to roll at.
-    :type advtype: d20.AdvType
     :return: The copied AST.
-    :rtype: d20.ast.Node
     """
     root = copy.copy(ast)
     if not advtype:
@@ -61,20 +65,18 @@ def ast_adv_copy(ast, advtype):
     return root
 
 
-def simplify_expr_annotations(expr, ambig_inherit=None):
+def simplify_expr_annotations(expr: ExpressionNode, ambig_inherit: Optional[str] = None):
     """
     Transforms an expression in place by simplifying the annotations using a bubble-up method.
 
-    >>> expr = roll("1d20[foo]+3").expr
-    >>> simplify_expr_annotations(expr.roll)
-    >>> SimpleStringifier().stringify(expr)
+    >>> roll_expr = d20.roll("1d20[foo]+3").expr
+    >>> simplify_expr_annotations(roll_expr.roll)
+    >>> d20.SimpleStringifier().stringify(roll_expr)
     "1d20 (4) + 3 [foo] = 7"
 
     :param expr: The expression to transform.
-    :type expr: d20.Number
-    :param ambig_inherit: When encountering a child node with no annotation and the parent has ambiguous types, which \
-    to inherit. Can be ``None`` for no inherit, ``'left'`` for leftmost, or ``'right'`` for rightmost.
-    :type ambig_inherit: Optional[str]
+    :param ambig_inherit: When encountering a child node with no annotation and the parent has ambiguous types, which
+        to inherit. Can be ``None`` for no inherit, ``'left'`` for leftmost, or ``'right'`` for rightmost.
     """
     if ambig_inherit not in ('left', 'right', None):
         raise ValueError("ambig_inherit must be 'left', 'right', or None.")
@@ -114,17 +116,17 @@ def simplify_expr_annotations(expr, ambig_inherit=None):
     do_simplify(expr)
 
 
-def simplify_expr(expr, **kwargs):
+def simplify_expr(expr: expression.Expression, **kwargs):
     """
-    Transforms an expression in place by simplifying it (removing all dice and evaluating branches with respect to annotations).
+    Transforms an expression in place by simplifying it (removing all dice and evaluating branches with respect to
+    annotations).
 
-    >>> expr = roll("1d20[foo] + 3 - 1d4[bar]").expr
-    >>> simplify_expr(expr)
-    >>> SimpleStringifier().stringify(expr)
+    >>> roll_expr = d20.roll("1d20[foo] + 3 - 1d4[bar]").expr
+    >>> simplify_expr(roll_expr)
+    >>> d20.SimpleStringifier().stringify(roll_expr)
     "7 [foo] - 2 [bar] = 5"
 
     :param expr: The expression to transform.
-    :type expr: d20.Expression
     :param kwargs: Arguments that are passed to :func:`simplify_expr_annotations`.
     """
     simplify_expr_annotations(expr.roll, **kwargs)
@@ -155,14 +157,12 @@ def simplify_expr(expr, **kwargs):
     do_simplify(expr, True)
 
 
-def tree_map(func, node):
+def tree_map(func: Callable[[TreeType], TreeType], node: TreeType) -> TreeType:
     """
     Returns a copy of the tree, with each node replaced with ``func(node)``.
 
     :param func: A transformer function.
-    :type func: typing.Callable[[d20.ast.ChildMixin], d20.ast.ChildMixin]
     :param node: The root of the tree to transform.
-    :type node: d20.ast.ChildMixin
     """
     copied = copy.copy(node)
     for i, child in enumerate(copied.children):
@@ -170,13 +170,11 @@ def tree_map(func, node):
     return func(copied)
 
 
-def leftmost(root):
+def leftmost(root: TreeType) -> TreeType:
     """
     Returns the leftmost leaf in this tree.
 
     :param root: The root node of the tree.
-    :type root: d20.ast.ChildMixin
-    :rtype: d20.ast.ChildMixin
     """
     left = root
     while left.children:
@@ -184,13 +182,11 @@ def leftmost(root):
     return left
 
 
-def rightmost(root):
+def rightmost(root: TreeType) -> TreeType:
     """
     Returns the rightmost leaf in this tree.
 
     :param root: The root node of the tree.
-    :type root: d20.ast.ChildMixin
-    :rtype: d20.ast.ChildMixin
     """
     right = root
     while right.children:
@@ -198,15 +194,13 @@ def rightmost(root):
     return right
 
 
-def dfs(node, predicate):
+def dfs(node: TreeType, predicate: Callable[[TreeType], bool]) -> Optional[TreeType]:
     """
     Returns the first node in the tree such that ``predicate(node)`` is True, searching depth-first left-to-right.
+    Returns None if no node satisfying the predicate was found.
 
     :param node: The root node of the tree.
-    :type node: d20.ast.ChildMixin
     :param predicate: A predicate function.
-    :type predicate: typing.Callable[[d20.ast.ChildMixin], bool]
-    :rtype: d20.ast.ChildMixin
     """
     if predicate(node):
         return node

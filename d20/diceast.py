@@ -343,7 +343,7 @@ class OperatedSet(Node):  # set
         """
         super().__init__()
         self.value = the_set
-        self.operations = operations
+        self.operations = list(operations)
         self._simplify_operations()
 
     @property
