@@ -1,8 +1,11 @@
 import abc
+from typing import Callable, Iterable, Mapping, Type, TypeVar
 
 from .expression import *
 
 __all__ = ("Stringifier", "SimpleStringifier", "MarkdownStringifier")
+
+ExpressionNode = TypeVar('ExpressionNode', bound=Number)
 
 
 class Stringifier(abc.ABC):
@@ -12,7 +15,7 @@ class Stringifier(abc.ABC):
     """
 
     def __init__(self):
-        self._nodes = {
+        self._nodes: Mapping[Type[ExpressionNode], Callable[[ExpressionNode], str]] = {
             Expression: self._str_expression,
             Literal: self._str_literal,
             UnOp: self._str_unop,
@@ -23,7 +26,7 @@ class Stringifier(abc.ABC):
             Die: self._str_die
         }
 
-    def stringify(self, the_roll):
+    def stringify(self, the_roll: ExpressionNode) -> str:
         """
         Transforms a rolled expression into a string recursively, bottom-up.
 
@@ -33,7 +36,7 @@ class Stringifier(abc.ABC):
         """
         return self._stringify(the_roll)
 
-    def _stringify(self, node):
+    def _stringify(self, node: ExpressionNode) -> str:
         """
         Called on each node that needs to be stringified.
 
@@ -47,7 +50,7 @@ class Stringifier(abc.ABC):
             return f"{inside} {node.annotation}"
         return inside
 
-    def _str_expression(self, node):
+    def _str_expression(self, node: Expression) -> str:
         """
         :param node: The node to stringify.
         :type node: d20.Expression
@@ -55,7 +58,7 @@ class Stringifier(abc.ABC):
         """
         raise NotImplementedError
 
-    def _str_literal(self, node):
+    def _str_literal(self, node: Literal) -> str:
         """
         :param node: The node to stringify.
         :type node: d20.Literal
@@ -63,7 +66,7 @@ class Stringifier(abc.ABC):
         """
         raise NotImplementedError
 
-    def _str_unop(self, node):
+    def _str_unop(self, node: UnOp) -> str:
         """
         :param node: The node to stringify.
         :type node: d20.UnOp
@@ -71,7 +74,7 @@ class Stringifier(abc.ABC):
         """
         raise NotImplementedError
 
-    def _str_binop(self, node):
+    def _str_binop(self, node: BinOp) -> str:
         """
         :param node: The node to stringify.
         :type node: d20.BinOp
@@ -79,7 +82,7 @@ class Stringifier(abc.ABC):
         """
         raise NotImplementedError
 
-    def _str_parenthetical(self, node):
+    def _str_parenthetical(self, node: Parenthetical) -> str:
         """
         :param node: The node to stringify.
         :type node: d20.Parenthetical
@@ -87,7 +90,7 @@ class Stringifier(abc.ABC):
         """
         raise NotImplementedError
 
-    def _str_set(self, node):
+    def _str_set(self, node: Set) -> str:
         """
         :param node: The node to stringify.
         :type node: d20.Set
@@ -95,7 +98,7 @@ class Stringifier(abc.ABC):
         """
         raise NotImplementedError
 
-    def _str_dice(self, node):
+    def _str_dice(self, node: Dice) -> str:
         """
         :param node: The node to stringify.
         :type node: d20.Dice
@@ -103,7 +106,7 @@ class Stringifier(abc.ABC):
         """
         raise NotImplementedError
 
-    def _str_die(self, node):
+    def _str_die(self, node: Die) -> str:
         """
         :param node: The node to stringify.
         :type node: d20.Die
@@ -112,7 +115,7 @@ class Stringifier(abc.ABC):
         raise NotImplementedError
 
     @staticmethod
-    def _str_ops(operations):
+    def _str_ops(operations: Iterable[SetOperator]) -> str:
         return ''.join([str(op) for op in operations])
 
 

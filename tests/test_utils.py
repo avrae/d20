@@ -149,6 +149,21 @@ class TestTreeMap:
         assert mapped is not expr
         assert SimpleStringifier().stringify(expr) == '(1, 2, 3) = 6'
 
+    def test_expr_map_types(self):
+        expr = roll("(1, 2, 3) + (4, 5, 6)").expr
+
+        def mapper(node):
+            if isinstance(node, Set):
+                return Literal(int(node))
+            return node
+
+        mapped = utils.tree_map(mapper, expr)
+
+        assert SimpleStringifier().stringify(mapped) == '6 + 15 = 21'
+        assert mapped.total == 21
+        assert mapped is not expr
+        assert SimpleStringifier().stringify(expr) == '(1, 2, 3) + (4, 5, 6) = 21'
+
 
 def test_leftmost():
     tree = parse("1d20 + 4d6 + 3")

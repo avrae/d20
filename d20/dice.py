@@ -1,4 +1,5 @@
 from enum import IntEnum
+from typing import Callable, Mapping, MutableMapping, Optional, Type, TypeVar, Union
 
 import cachetools
 import lark
@@ -6,11 +7,15 @@ import lark
 from . import diceast as ast, utils
 from .errors import *
 from .expression import *
-from .stringifiers import MarkdownStringifier
+from .stringifiers import MarkdownStringifier, Stringifier
 
 __all__ = ("CritType", "AdvType", "RollContext", "RollResult", "Roller")
 
 POSSIBLE_COMMENT_AMBIGUITIES = {"*", }
+
+TreeType = TypeVar('TreeType', bound=ast.ChildMixin)
+ASTNode = TypeVar('ASTNode', bound=ast.Node)
+ExpressionNode = TypeVar('ExpressionNode', bound=Number)
 
 
 class CritType(IntEnum):
@@ -64,7 +69,7 @@ class RollResult:
     Holds information about the result of a roll. This should generally not be constructed manually.
     """
 
-    def __init__(self, the_ast, the_roll, stringifier):
+    def __init__(self, the_ast: ASTNode, the_roll: ExpressionNode, stringifier: Stringifier):
         """
         :type the_ast: ast.Node
         :type the_roll: d20.Expression
@@ -76,15 +81,15 @@ class RollResult:
         self.comment = the_roll.comment
 
     @property
-    def total(self):
+    def total(self) -> int:
         return int(self.expr.total)
 
     @property
-    def result(self):
+    def result(self) -> str:
         return self.stringifier.stringify(self.expr)
 
     @property
-    def crit(self):
+    def crit(self) -> CritType:
         """
         If the leftmost node was Xd20kh1, returns :class:`CritType.CRIT` if the roll was a 20 and
         :class:`CritType.FAIL` if the roll was a 1.
@@ -128,11 +133,11 @@ class RollResult:
 class Roller:
     """The main class responsible for parsing dice into an AST and evaluating that AST."""
 
-    def __init__(self, context=None):
+    def __init__(self, context: Optional[RollContext] = None):
         if context is None:
             context = RollContext()
 
-        self._nodes = {
+        self._nodes: Mapping[Type[ASTNode], Callable[[ASTNode], ExpressionNode]] = {
             ast.Expression: self._eval_expression,
             ast.AnnotatedNumber: self._eval_annotatednumber,
             ast.Literal: self._eval_literal,
@@ -144,10 +149,14 @@ class Roller:
             ast.OperatedDice: self._eval_operateddice,
             ast.Dice: self._eval_dice
         }
-        self._parse_cache = cachetools.LFUCache(256)
-        self.context = context
+        self._parse_cache: MutableMapping[str, ASTNode] = cachetools.LFUCache(256)
+        self.context: RollContext = context
 
-    def roll(self, expr, stringifier=None, allow_comments=False, advantage=AdvType.NONE):
+    def roll(self,
+             expr: Union[str, ASTNode],
+             stringifier: Optional[Stringifier] = None,
+             allow_comments: bool = False,
+             advantage: AdvType = AdvType.NONE) -> RollResult:
         """
         Rolls the dice.
 
@@ -176,7 +185,7 @@ class Roller:
         return RollResult(dice_tree, dice_expr, stringifier)
 
     # parsers
-    def parse(self, expr, allow_comments=False):
+    def parse(self, expr: str, allow_comments: bool = False) -> ast.Expression:
         """
         Parses a dice expression into an AST.
 
@@ -195,7 +204,7 @@ class Roller:
         except lark.UnexpectedCharacters as uc:
             raise RollSyntaxError(uc.line, uc.column, expr[uc.pos_in_stream], uc.allowed)
 
-    def _parse_no_comment(self, expr):
+    def _parse_no_comment(self, expr: str) -> ast.Expression:
         # see if this expr is in cache
         clean_expr = expr.replace(' ', '')
         if clean_expr in self._parse_cache:
@@ -204,7 +213,7 @@ class Roller:
         self._parse_cache[clean_expr] = dice_tree
         return dice_tree
 
-    def _parse_with_comments(self, expr):
+    def _parse_with_comments(self, expr: str) -> ast.Expression:
         try:
             return ast.parser.parse(expr, start='commented_expr')
         except lark.UnexpectedInput as ui:
@@ -223,33 +232,33 @@ class Roller:
             return result
 
     # evaluator
-    def _eval(self, node):
+    def _eval(self, node: ASTNode) -> ExpressionNode:
         # noinspection PyUnresolvedReferences
         # for some reason pycharm thinks this isn't a valid dict operation
         handler = self._nodes[type(node)]
         return handler(node)
 
-    def _eval_expression(self, node):
+    def _eval_expression(self, node: ast.Expression) -> Expression:
         return Expression(self._eval(node.roll), node.comment)
 
-    def _eval_annotatednumber(self, node):
+    def _eval_annotatednumber(self, node: ast.AnnotatedNumber) -> ExpressionNode:
         target = self._eval(node.value)
         target.annotation = ''.join(node.annotations)
         return target
 
-    def _eval_literal(self, node):
+    def _eval_literal(self, node: ast.Literal) -> Literal:
         return Literal(node.value)
 
-    def _eval_parenthetical(self, node):
+    def _eval_parenthetical(self, node: ast.Parenthetical) -> Parenthetical:
         return Parenthetical(self._eval(node.value))
 
-    def _eval_unop(self, node):
+    def _eval_unop(self, node: ast.UnOp) -> UnOp:
         return UnOp(node.op, self._eval(node.value))
 
-    def _eval_binop(self, node):
+    def _eval_binop(self, node: ast.BinOp) -> BinOp:
         return BinOp(self._eval(node.left), node.op, self._eval(node.right))
 
-    def _eval_operatedset(self, node):
+    def _eval_operatedset(self, node: ast.OperatedSet) -> ExpressionNode:
         target = self._eval(node.value)
         for op in node.operations:
             the_op = SetOperator.from_ast(op)
@@ -257,11 +266,11 @@ class Roller:
             target.operations.append(the_op)
         return target
 
-    def _eval_numberset(self, node):
+    def _eval_numberset(self, node: ast.NumberSet) -> Set:
         return Set([self._eval(n) for n in node.values])
 
-    def _eval_operateddice(self, node):
+    def _eval_operateddice(self, node: ast.OperatedDice) -> ExpressionNode:
         return self._eval_operatedset(node)
 
-    def _eval_dice(self, node):
+    def _eval_dice(self, node: ast.Dice) -> Dice:
         return Dice.new(node.num, node.size, context=self.context)
