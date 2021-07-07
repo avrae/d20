@@ -30,8 +30,7 @@ def ast_adv_copy(ast: ASTNode, advtype: AdvType) -> ASTNode:
         return root
 
     # find the leftmost node, making shallow copies all the way down
-    parent = None
-    child = root
+    parent = child = root
     while child.children:
         parent = child
         parent.left = child = copy.copy(parent.left)

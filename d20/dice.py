@@ -69,7 +69,7 @@ class RollResult:
     Holds information about the result of a roll. This should generally not be constructed manually.
     """
 
-    def __init__(self, the_ast: ASTNode, the_roll: ExpressionNode, stringifier: Stringifier):
+    def __init__(self, the_ast: ASTNode, the_roll: Expression, stringifier: Stringifier):
         """
         :type the_ast: ast.Node
         :type the_roll: d20.Expression
