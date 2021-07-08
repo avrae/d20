@@ -1,5 +1,5 @@
 import copy
-from typing import Callable, Literal, Optional, TypeVar
+from typing import Callable, Optional, TypeVar
 
 import d20  # this import is here for the doctests
 from d20 import diceast, expression
@@ -65,7 +65,7 @@ def ast_adv_copy(ast: ASTNode, advtype: AdvType) -> ASTNode:
     return root
 
 
-def simplify_expr_annotations(expr: ExpressionNode, ambig_inherit: Optional[Literal['left', 'right']] = None):
+def simplify_expr_annotations(expr: ExpressionNode, ambig_inherit: Optional[str] = None):
     """
     Transforms an expression in place by simplifying the annotations using a bubble-up method.
 
