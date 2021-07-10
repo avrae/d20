@@ -402,7 +402,7 @@ class Die(Number):  # part of diceexpr
         if self._context:
             self._context.count_roll()
         if self.size == '%':
-            n = Literal(random.randrange(0, 100, 10))
+            n = Literal(random.randrange(10) * 10)  # faster than random.randrange(0, 100, 10)
         else:
             n = Literal(random.randrange(self.size) + 1)  # 200ns faster than randint(1, self._size)
         self.values.append(n)
