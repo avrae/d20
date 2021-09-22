@@ -1,8 +1,7 @@
 import abc
 import random
 
-from . import diceast as ast
-from . import errors
+from . import diceast as ast, errors, rand
 
 __all__ = (
     "Number", "Expression", "Literal", "UnOp", "BinOp", "Parenthetical", "Set", "Dice", "Die",
@@ -329,27 +328,29 @@ class Set(Number):
 
 class Dice(Set):
     """A set of Die."""
-    __slots__ = ("num", "size", "_context")
+    __slots__ = ("num", "size", "_context", "_rng")
 
-    def __init__(self, num, size, values, operations=None, context=None, **kwargs):
+    def __init__(self, num, size, values, operations=None, context=None, rng=rand.random_impl, **kwargs):
         """
         :type num: int
         :type size: int|str
         :type values: list of Die
         :type operations: list[SetOperator]
         :type context: dice.RollContext
+        :type rng: random.Random
         """
         super().__init__(values, operations, **kwargs)
         self.num = num
         self.size = size
         self._context = context
+        self._rng = rng
 
     @classmethod
-    def new(cls, num, size, context=None):
-        return cls(num, size, [Die.new(size, context=context) for _ in range(num)], context=context)
+    def new(cls, num, size, context=None, rng=rand.random_impl):
+        return cls(num, size, [Die.new(size, context=context, rng=rng) for _ in range(num)], context=context, rng=rng)
 
     def roll_another(self):
-        self.values.append(Die.new(self.size, context=self._context))
+        self.values.append(Die.new(self.size, context=self._context, rng=self._rng))
 
     @property
     def children(self):
@@ -359,28 +360,30 @@ class Dice(Set):
         return f"<Dice num={self.num} size={self.size} values={self.values} operations={self.operations}>"
 
     def __copy__(self):
-        return Dice(num=self.num, size=self.size, context=self._context,
-                    values=self.values.copy(), operations=self.operations.copy(), )
+        return Dice(num=self.num, size=self.size, context=self._context, rng=self._rng,
+                    values=self.values.copy(), operations=self.operations.copy())
 
 
 class Die(Number):  # part of diceexpr
     """Represents a single die."""
-    __slots__ = ("size", "values", "_context")
+    __slots__ = ("size", "values", "_context", "_rng")
 
-    def __init__(self, size, values, context=None):
+    def __init__(self, size, values, context=None, rng=rand.random_impl):
         """
         :type size: int
         :type values: list of Literal
         :type context: dice.RollContext
+        :type rng: random.Random
         """
         super().__init__()
         self.size = size
         self.values = values
         self._context = context
+        self._rng = rng
 
     @classmethod
-    def new(cls, size, context=None):
-        inst = cls(size, [], context=context)
+    def new(cls, size, context=None, rng=rand.random_impl):
+        inst = cls(size, [], context=context, rng=rng)
         inst._add_roll()
         return inst
 
@@ -402,9 +405,9 @@ class Die(Number):  # part of diceexpr
         if self._context:
             self._context.count_roll()
         if self.size == '%':
-            n = Literal(random.randrange(10) * 10)
+            n = Literal(self._rng.randrange(10) * 10)
         else:
-            n = Literal(random.randrange(self.size) + 1)  # 200ns faster than randint(1, self._size)
+            n = Literal(self._rng.randrange(self.size) + 1)  # 200ns faster than randint(1, self._size)
         self.values.append(n)
 
     def reroll(self):

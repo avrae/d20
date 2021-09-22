@@ -1,5 +1,5 @@
 from . import diceast as ast
-from . import utils
+from . import rand, utils
 from .dice import *
 from .errors import *
 from .expression import *

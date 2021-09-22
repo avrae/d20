@@ -1,10 +1,11 @@
+import random
 from enum import IntEnum
 from typing import Callable, Mapping, MutableMapping, Optional, Type, TypeVar, Union
 
 import cachetools
 import lark
 
-from . import diceast as ast, utils
+from . import diceast as ast, rand, utils
 from .errors import *
 from .expression import *
 from .stringifiers import MarkdownStringifier, Stringifier
@@ -133,7 +134,7 @@ class RollResult:
 class Roller:
     """The main class responsible for parsing dice into an AST and evaluating that AST."""
 
-    def __init__(self, context: Optional[RollContext] = None):
+    def __init__(self, context: RollContext = None, rng: random.Random = rand.random_impl):
         if context is None:
             context = RollContext()
 
@@ -150,7 +151,8 @@ class Roller:
             ast.Dice: self._eval_dice
         }
         self._parse_cache: MutableMapping[str, ASTNode] = cachetools.LFUCache(256)
-        self.context: RollContext = context
+        self.context = context
+        self.rng = rng
 
     def roll(self,
              expr: Union[str, ASTNode],
@@ -273,4 +275,4 @@ class Roller:
         return self._eval_operatedset(node)
 
     def _eval_dice(self, node: ast.Dice) -> Dice:
-        return Dice.new(node.num, node.size, context=self.context)
+        return Dice.new(node.num, node.size, context=self.context, rng=self.rng)
