@@ -28,7 +28,7 @@ jobs:
       - name: Install numpy
         if: matrix.numpy-version != false
         run: |
-          pip install numpy${{ matrix.numpy-version }}
+          pip install "numpy${{ matrix.numpy-version }}"
 
       - name: Lint with flake8
         run: |
