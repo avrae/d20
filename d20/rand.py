@@ -12,7 +12,7 @@ Thanks to @posita for inspiring the implementation of NumpyRandom.
 """
 
 import random
-from typing import Any, NewType, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Any, NewType, Optional, Sequence, TYPE_CHECKING, Type, Union
 
 __all__ = ("random_impl",)
 
@@ -41,26 +41,34 @@ try:
 
 
     class NumpyRandom(random.Random):
-        def __init__(self, generator: _BitGenT, x: _SeedT = None):
-            self._gen = Generator(generator)
+        _gen: Generator
+
+        def __init__(self, bitgen_type: Type[_BitGenT], x: _SeedT = None):
+            self._bitgen_type = bitgen_type
+            # Random.__init__() calls seed(), so we let seed() initialize the Generator instance to avoid instantiating
+            # it twice (once in __init__, once in seed())
             super().__init__(x)
 
         def random(self) -> float:
             return self._gen.random()
 
         def getrandbits(self, k: int) -> int:
+            # Adapted from random.SystemRandom, see
+            # https://github.com/python/cpython/blob/8c21941ddafdf4925170f9cea22e2382dd3b0184/Lib/random.py#L800
             if k < 0:
                 raise ValueError('number of bits must be non-negative')
             numbytes = (k + 7) // 8  # bits / 8 and rounded up
-            x = int.from_bytes(self._gen.bytes(numbytes), 'big')
+            x = int.from_bytes(self.randbytes(numbytes), 'big')
             return x >> (numbytes * 8 - k)  # trim excess bits
+
+        def randbytes(self, n: int) -> bytes:
+            return self._gen.bytes(n)
 
         def seed(self, a: _SeedT = None, version: int = 2):
             # note that this takes in a different type than random.Random.seed()
             # this is because BitGenerator's seed requires an int/sequence of ints, while Random accepts
             # floats, strs, etc; for the common case we expect the user to pass an int
-            bg_type = type(self._gen.bit_generator)
-            self._gen = Generator(bg_type(a))
+            self._gen = Generator(self._bitgen_type(a))
 
         def getstate(self):
             return self._gen.bit_generator.state
@@ -70,10 +78,10 @@ try:
 
 
     if hasattr(numpy.random, "PCG64DXSM"):  # available in numpy 1.21 and up
-        random_impl = NumpyRandom(numpy.random.PCG64DXSM())
+        random_impl = NumpyRandom(numpy.random.PCG64DXSM)
     elif hasattr(numpy.random, "PCG64"):  # available in numpy 1.17 and up
-        random_impl = NumpyRandom(numpy.random.PCG64())
+        random_impl = NumpyRandom(numpy.random.PCG64)
     elif hasattr(numpy.random, "default_rng"):
-        random_impl = NumpyRandom(numpy.random.default_rng().bit_generator)
+        random_impl = NumpyRandom(type(numpy.random.default_rng().bit_generator))
 except ImportError:
     pass
