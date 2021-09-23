@@ -26,16 +26,16 @@ random_impl = random.Random()
 # todo tests, docs
 try:
     import numpy.random  # added in numpy 1.17
-    from numpy.random import Generator
+    from numpy.random import Generator, SeedSequence
 
+    _SeedT = Union[_SeedT, SeedSequence]
     if TYPE_CHECKING:
         try:
-            # this was only exposed in numpy 1.19 - we only import these for type checking
+            # this was only exposed in numpy 1.19 - we only import this for type checking
             # noinspection PyUnresolvedReferences
-            from numpy.random import BitGenerator, SeedSequence
+            from numpy.random import BitGenerator
 
             _BitGenT = BitGenerator
-            _SeedT = Union[_SeedT, SeedSequence]
         except ImportError:
             pass
 
@@ -62,6 +62,8 @@ try:
             return x >> (numbytes * 8 - k)  # trim excess bits
 
         def randbytes(self, n: int) -> bytes:
+            # prior to numpy v1.20 the docs say this returns str, but it actually returns bytes
+            # (tested on 1.17.5)
             return self._gen.bytes(n)
 
         def seed(self, a: _SeedT = None, version: int = 2):
