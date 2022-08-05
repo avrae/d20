@@ -20,10 +20,10 @@ from lark.tree import pydot__tree_to_png
 with open("d20/grammar.lark") as f:
     grammar = f.read()
 
-parser = Lark(grammar, start='expr', parser='lalr')
+parser = Lark(grammar, start="expr", parser="lalr")
 
 while True:
     result = parser.parse(input())
     print(result.pretty())
     print(result)
-    pydot__tree_to_png(result, 'tree.png')
+    pydot__tree_to_png(result, "tree.png")

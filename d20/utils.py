@@ -5,9 +5,9 @@ import d20  # this import is here for the doctests
 from d20 import diceast, expression
 from .dice import AdvType
 
-TreeType = TypeVar('TreeType', bound=diceast.ChildMixin)
-ASTNode = TypeVar('ASTNode', bound=diceast.Node)
-ExpressionNode = TypeVar('ExpressionNode', bound=expression.Number)
+TreeType = TypeVar("TreeType", bound=diceast.ChildMixin)
+ASTNode = TypeVar("ASTNode", bound=diceast.Node)
+ExpressionNode = TypeVar("ExpressionNode", bound=expression.Number)
 
 
 def ast_adv_copy(ast: ASTNode, advtype: AdvType) -> ASTNode:
@@ -56,10 +56,10 @@ def ast_adv_copy(ast: ASTNode, advtype: AdvType) -> ASTNode:
 
     # add the kh1 operator
     if advtype == 1:
-        high_or_low = diceast.SetSelector('h', 1)
+        high_or_low = diceast.SetSelector("h", 1)
     else:
-        high_or_low = diceast.SetSelector('l', 1)
-    kh1 = diceast.SetOperator('k', [high_or_low])
+        high_or_low = diceast.SetSelector("l", 1)
+    kh1 = diceast.SetOperator("k", [high_or_low])
     parent.operations.insert(0, kh1)
 
     return root
@@ -79,7 +79,7 @@ def simplify_expr_annotations(expr: ExpressionNode, ambig_inherit: Optional[str]
         to inherit. Can be ``None`` for no inherit, ``'left'`` for leftmost, or ``'right'`` for rightmost.
     :type ambig_inherit: Optional[str]
     """
-    if ambig_inherit not in ('left', 'right', None):
+    if ambig_inherit not in ("left", "right", None):
         raise ValueError("ambig_inherit must be 'left', 'right', or None.")
 
     def do_simplify(node):
@@ -102,13 +102,13 @@ def simplify_expr_annotations(expr: ExpressionNode, ambig_inherit: Optional[str]
             for i, child in enumerate(node.children):
                 if child_possibilities[child]:  # if the child already provides an annotation or ambiguity
                     continue
-                elif isinstance(node, expression.BinOp) \
-                        and node.op in {'*', '/', '//', '%'} \
-                        and i:  # if the child is the right side of a multiplicative binop
+                elif (
+                    isinstance(node, expression.BinOp) and node.op in {"*", "/", "//", "%"} and i
+                ):  # if the child is the right side of a multiplicative binop
                     continue
-                elif ambig_inherit == 'left':
+                elif ambig_inherit == "left":
                     child.annotation = possible_types[0]
-                elif ambig_inherit == 'right':
+                elif ambig_inherit == "right":
                     child.annotation = possible_types[-1]
 
         # return all possible types

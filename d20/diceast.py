@@ -151,6 +151,7 @@ class Node(abc.ABC, ChildMixin):
 
 class Expression(Node):  # expr
     """Expressions are usually the root of all ASTs."""
+
     __slots__ = ("roll", "comment")
 
     def __init__(self, roll, comment=None):
@@ -173,6 +174,7 @@ class Expression(Node):  # expr
 
 class AnnotatedNumber(Node):  # numexpr
     """Represents a value with an annotation."""
+
     __slots__ = ("value", "annotations")
 
     def __init__(self, value, *annotations):
@@ -205,7 +207,7 @@ class Literal(Node):  # literal
         """
         super().__init__()
         if isinstance(value, Token):
-            self.value = int(value) if value.type == 'INTEGER' else float(value)
+            self.value = int(value) if value.type == "INTEGER" else float(value)
         else:
             self.value = value
 
@@ -437,15 +439,16 @@ class Dice(Node):  # diceexpr
         return f"{self.num}d{self.size}"
 
 
-with open(os.path.join(os.path.dirname(__file__), 'grammar.lark')) as f:
+with open(os.path.join(os.path.dirname(__file__), "grammar.lark")) as f:
     grammar = f.read()
-parser = Lark(grammar, start=['expr', 'commented_expr'], parser='lalr', transformer=RollTransformer(),
-              maybe_placeholders=True)
+parser = Lark(
+    grammar, start=["expr", "commented_expr"], parser="lalr", transformer=RollTransformer(), maybe_placeholders=True
+)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     while True:
-        parser = Lark(grammar, start=['expr', 'commented_expr'], parser='lalr', maybe_placeholders=True)
-        result = parser.parse(input(), start='expr')
+        parser = Lark(grammar, start=["expr", "commented_expr"], parser="lalr", maybe_placeholders=True)
+        result = parser.parse(input(), start="expr")
         print(result.pretty())
         print(result)
         expr = RollTransformer().transform(result)

@@ -17,16 +17,20 @@ class RollSyntaxError(RollError):
         self.got = got
         self.expected = expected
 
-        msg = f"Unexpected input on line {line}, col {col}: expected {', '.join([str(ex) for ex in expected])}, " \
-              f"got {str(got)}"
+        msg = (
+            f"Unexpected input on line {line}, col {col}: expected {', '.join([str(ex) for ex in expected])}, "
+            f"got {str(got)}"
+        )
         super().__init__(msg)
 
 
 class RollValueError(RollError):
     """A bad value was passed to an operator."""
+
     pass
 
 
 class TooManyRolls(RollError):
     """Too many dice rolled (in an individual dice or in rerolls)."""
+
     pass

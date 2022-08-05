@@ -47,11 +47,11 @@ class TestAnnotationSimplify:
         assert SimpleStringifier().stringify(expr) == "1 + 2 [a] + 3 [b] + 4 = 10"
 
         expr = roll("1 [a] + 2 + 3 [b] + 4").expr
-        utils.simplify_expr_annotations(expr, 'left')
+        utils.simplify_expr_annotations(expr, "left")
         assert SimpleStringifier().stringify(expr) == "1 + 2 [a] + 3 [b] + 4 [a] = 10"
 
         expr = roll("1 [a] + 2 + 3 [b] + 4").expr
-        utils.simplify_expr_annotations(expr, 'right')
+        utils.simplify_expr_annotations(expr, "right")
         assert SimpleStringifier().stringify(expr) == "1 + 2 [a] + 3 [b] + 4 [b] = 10"
 
         expr = roll("1 [a] + 2 + 3 [a] + 4").expr
@@ -97,9 +97,9 @@ class TestTreeMap:
 
         mapped = utils.tree_map(mapper, tree)
 
-        assert str(mapped) == '2d20 + 8d6 + 3'
+        assert str(mapped) == "2d20 + 8d6 + 3"
         assert mapped is not tree
-        assert str(tree) == '1d20 + 4d6 + 3'  # make sure it returned a copy
+        assert str(tree) == "1d20 + 4d6 + 3"  # make sure it returned a copy
 
     def test_expr_map(self):
         expr = roll("1 + 2 + 3").expr
@@ -113,10 +113,10 @@ class TestTreeMap:
 
         mapped = utils.tree_map(mapper, expr)
 
-        assert SimpleStringifier().stringify(mapped) == '2 + 4 + 6 = 12'
+        assert SimpleStringifier().stringify(mapped) == "2 + 4 + 6 = 12"
         assert mapped.total == 12
         assert mapped is not expr
-        assert SimpleStringifier().stringify(expr) == '1 + 2 + 3 = 6'
+        assert SimpleStringifier().stringify(expr) == "1 + 2 + 3 = 6"
 
     def test_ast_map_set_copy(self):  # avrae/avrae#1537
         tree = parse("(1d6, 1d6)kh1")
@@ -128,9 +128,9 @@ class TestTreeMap:
 
         mapped = utils.tree_map(mapper, tree)
 
-        assert str(mapped) == '(2d6, 2d6)kh1'
+        assert str(mapped) == "(2d6, 2d6)kh1"
         assert mapped is not tree
-        assert str(tree) == '(1d6, 1d6)kh1'
+        assert str(tree) == "(1d6, 1d6)kh1"
 
     def test_expr_map_set_copy(self):
         expr = roll("(1, 2, 3)").expr
@@ -144,10 +144,10 @@ class TestTreeMap:
 
         mapped = utils.tree_map(mapper, expr)
 
-        assert SimpleStringifier().stringify(mapped) == '(2, 4, 6) = 12'
+        assert SimpleStringifier().stringify(mapped) == "(2, 4, 6) = 12"
         assert mapped.total == 12
         assert mapped is not expr
-        assert SimpleStringifier().stringify(expr) == '(1, 2, 3) = 6'
+        assert SimpleStringifier().stringify(expr) == "(1, 2, 3) = 6"
 
     def test_expr_map_types(self):
         expr = roll("(1, 2, 3) + (4, 5, 6)").expr
@@ -159,30 +159,30 @@ class TestTreeMap:
 
         mapped = utils.tree_map(mapper, expr)
 
-        assert SimpleStringifier().stringify(mapped) == '6 + 15 = 21'
+        assert SimpleStringifier().stringify(mapped) == "6 + 15 = 21"
         assert mapped.total == 21
         assert mapped is not expr
-        assert SimpleStringifier().stringify(expr) == '(1, 2, 3) + (4, 5, 6) = 21'
+        assert SimpleStringifier().stringify(expr) == "(1, 2, 3) + (4, 5, 6) = 21"
 
 
 def test_leftmost():
     tree = parse("1d20 + 4d6 + 3")
-    assert str(utils.leftmost(tree)) == '1d20'
+    assert str(utils.leftmost(tree)) == "1d20"
 
     expr = roll(tree).expr
-    assert SimpleStringifier().stringify(utils.leftmost(expr)).startswith('1d20 ')
+    assert SimpleStringifier().stringify(utils.leftmost(expr)).startswith("1d20 ")
 
 
 def test_rightmost():
     tree = parse("1d20 + 4d6 + 3")
-    assert str(utils.rightmost(tree)) == '3'
+    assert str(utils.rightmost(tree)) == "3"
 
     expr = roll(tree).expr
-    assert SimpleStringifier().stringify(utils.rightmost(expr)) == '3'
+    assert SimpleStringifier().stringify(utils.rightmost(expr)) == "3"
 
 
 def test_dfs():
     mixed = roll("-1d8 + 4 - (3, 1d4)kh1")
     result = utils.dfs(mixed.expr, lambda node: isinstance(node, Dice) and node.num == 1 and node.size == 4)
 
-    assert SimpleStringifier().stringify(result).startswith('1d4 ')
+    assert SimpleStringifier().stringify(result).startswith("1d4 ")
