@@ -11,17 +11,20 @@ from .stringifiers import MarkdownStringifier, Stringifier
 
 __all__ = ("CritType", "AdvType", "RollContext", "RollResult", "Roller")
 
-POSSIBLE_COMMENT_AMBIGUITIES = {"*", }
+POSSIBLE_COMMENT_AMBIGUITIES = {
+    "*",
+}
 
-TreeType = TypeVar('TreeType', bound=ast.ChildMixin)
-ASTNode = TypeVar('ASTNode', bound=ast.Node)
-ExpressionNode = TypeVar('ExpressionNode', bound=Number)
+TreeType = TypeVar("TreeType", bound=ast.ChildMixin)
+ASTNode = TypeVar("ASTNode", bound=ast.Node)
+ExpressionNode = TypeVar("ExpressionNode", bound=Number)
 
 
 class CritType(IntEnum):
     """
     Integer enumeration representing the crit type of a roll.
     """
+
     NONE = 0
     CRIT = 1
     FAIL = 2
@@ -31,6 +34,7 @@ class AdvType(IntEnum):
     """
     Integer enumeration representing at what advantage a roll should be made at.
     """
+
     NONE = 0
     ADV = 1
     DIS = -1
@@ -147,16 +151,18 @@ class Roller:
             ast.OperatedSet: self._eval_operatedset,
             ast.NumberSet: self._eval_numberset,
             ast.OperatedDice: self._eval_operateddice,
-            ast.Dice: self._eval_dice
+            ast.Dice: self._eval_dice,
         }
         self._parse_cache: MutableMapping[str, ASTNode] = cachetools.LFUCache(256)
         self.context: RollContext = context
 
-    def roll(self,
-             expr: Union[str, ASTNode],
-             stringifier: Optional[Stringifier] = None,
-             allow_comments: bool = False,
-             advantage: AdvType = AdvType.NONE) -> RollResult:
+    def roll(
+        self,
+        expr: Union[str, ASTNode],
+        stringifier: Optional[Stringifier] = None,
+        allow_comments: bool = False,
+        advantage: AdvType = AdvType.NONE,
+    ) -> RollResult:
         """
         Rolls the dice.
 
@@ -206,28 +212,28 @@ class Roller:
 
     def _parse_no_comment(self, expr: str) -> ast.Expression:
         # see if this expr is in cache
-        clean_expr = expr.replace(' ', '')
+        clean_expr = expr.replace(" ", "")
         if clean_expr in self._parse_cache:
             return self._parse_cache[clean_expr]
-        dice_tree = ast.parser.parse(expr, start='expr')
+        dice_tree = ast.parser.parse(expr, start="expr")
         self._parse_cache[clean_expr] = dice_tree
         return dice_tree
 
     def _parse_with_comments(self, expr: str) -> ast.Expression:
         try:
-            return ast.parser.parse(expr, start='commented_expr')
+            return ast.parser.parse(expr, start="commented_expr")
         except lark.UnexpectedInput as ui:
             # if the statement up to the unexpected token ends with an operator, remove that from the end
-            successful_fragment = expr[:ui.pos_in_stream]
+            successful_fragment = expr[: ui.pos_in_stream]
             for op in POSSIBLE_COMMENT_AMBIGUITIES:
                 if successful_fragment.endswith(op):
-                    successful_fragment = successful_fragment[:-len(op)]
-                    force_comment = expr[len(successful_fragment):]
+                    successful_fragment = successful_fragment[: -len(op)]
+                    force_comment = expr[len(successful_fragment) :]
                     break
             else:
                 raise
             # and parse again (handles edge cases like "1d20 keep the dragon grappled")
-            result = ast.parser.parse(successful_fragment, start='commented_expr')
+            result = ast.parser.parse(successful_fragment, start="commented_expr")
             result.comment = force_comment
             return result
 
@@ -243,7 +249,7 @@ class Roller:
 
     def _eval_annotatednumber(self, node: ast.AnnotatedNumber) -> ExpressionNode:
         target = self._eval(node.value)
-        target.annotation = ''.join(node.annotations)
+        target.annotation = "".join(node.annotations)
         return target
 
     def _eval_literal(self, node: ast.Literal) -> Literal:

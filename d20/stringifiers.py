@@ -5,7 +5,7 @@ from .expression import *
 
 __all__ = ("Stringifier", "SimpleStringifier", "MarkdownStringifier")
 
-ExpressionNode = TypeVar('ExpressionNode', bound=Number)
+ExpressionNode = TypeVar("ExpressionNode", bound=Number)
 
 
 class Stringifier(abc.ABC):
@@ -23,7 +23,7 @@ class Stringifier(abc.ABC):
             Parenthetical: self._str_parenthetical,
             Set: self._str_set,
             Dice: self._str_dice,
-            Die: self._str_die
+            Die: self._str_die,
         }
 
     def stringify(self, the_roll: ExpressionNode) -> str:
@@ -116,7 +116,7 @@ class Stringifier(abc.ABC):
 
     @staticmethod
     def _str_ops(operations: Iterable[SetOperator]) -> str:
-        return ''.join([str(op) for op in operations])
+        return "".join([str(op) for op in operations])
 
 
 class SimpleStringifier(Stringifier):
@@ -128,7 +128,7 @@ class SimpleStringifier(Stringifier):
         return f"{self._stringify(node.roll)} = {int(node.total)}"
 
     def _str_literal(self, node):
-        history = ' -> '.join(map(str, node.values))
+        history = " -> ".join(map(str, node.values))
         if node.exploded:
             return f"{history}!"
         return history
@@ -154,7 +154,7 @@ class SimpleStringifier(Stringifier):
 
     def _str_die(self, node):
         the_rolls = [self._stringify(val) for val in node.values]
-        return ', '.join(the_rolls)
+        return ", ".join(the_rolls)
 
 
 class MarkdownStringifier(SimpleStringifier):
@@ -195,4 +195,4 @@ class MarkdownStringifier(SimpleStringifier):
             if val.number == 1 or val.number == node.size:
                 inside = f"**{inside}**"
             the_rolls.append(inside)
-        return ', '.join(the_rolls)
+        return ", ".join(the_rolls)

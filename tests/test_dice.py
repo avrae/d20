@@ -3,8 +3,16 @@ import pytest
 from d20 import *
 
 STANDARD_EXPRESSIONS = [
-    '1d20', '1d%', '1+1', '4d6kh3', '(1)', '(1,)', '((1d6))', '4*(3d8kh2+9[fire]+(9d2e2+3[cold])/2)',
-    '(1d4, 2+2, 3d6kl1)kh1', '((10d6kh5)kl2)kh1'
+    "1d20",
+    "1d%",
+    "1+1",
+    "4d6kh3",
+    "(1)",
+    "(1,)",
+    "((1d6))",
+    "4*(3d8kh2+9[fire]+(9d2e2+3[cold])/2)",
+    "(1d4, 2+2, 3d6kl1)kh1",
+    "((10d6kh5)kl2)kh1",
 ]
 
 
@@ -223,6 +231,6 @@ def test_correct_results():
     result = roll("1+2+3")
     assert result.total == 6
     assert result.result == "1 + 2 + 3 = `6`"
-    result.expr.roll = BinOp(result.expr.roll, '+', Literal(4))
+    result.expr.roll = BinOp(result.expr.roll, "+", Literal(4))
     assert result.total == 10
     assert result.result == "1 + 2 + 3 + 4 = `10`"
