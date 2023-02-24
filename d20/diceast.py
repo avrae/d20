@@ -428,6 +428,8 @@ class Dice(Node):  # diceexpr
         self.num = int(num)
         if str(size) == "%":
             self.size = str(size)
+        elif str(size) == "F" or str(size) == "f":
+            self.size = "F"
         else:
             self.size = int(size)
 

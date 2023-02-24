@@ -46,7 +46,7 @@ DICE_OPERATOR: "rr" | "ro" | "ra" | "e" | "mi" | "ma"
 
 diceexpr: INTEGER? "d" DICE_VALUE
 
-DICE_VALUE: INTEGER | "%"
+DICE_VALUE: INTEGER | "%" | "F" | "f"
 
 selector: [SELTYPE] INTEGER
 
