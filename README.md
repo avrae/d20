@@ -54,7 +54,7 @@ These are the atoms used at the base of the syntax tree.
 | Name    | Syntax                            | Description           | Examples                       |
 |---------|-----------------------------------|-----------------------|--------------------------------|
 | literal | `INT`, `DECIMAL`                  | A literal number.     | `1`, `0.5`, `3.14`             |
-| dice    | `INT? "d" (INT \| "%")`           | A set of die.         | `d20`, `3d6`                   |
+| dice    | `INT? "d" (INT \| "%" \| "F" \| "f")` | A set of die.         | `d20`, `3d6`                   |
 | set     | `"(" (num ("," num)* ","?)? ")"`  | A set of expressions. | `()`, `(2,)`, `(1, 3+3, 1d20)` |
 
 Note that `(3d6)` is equivalent to `3d6`, but `(3d6,)` is the set containing the one element `3d6`.

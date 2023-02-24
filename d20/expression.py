@@ -175,6 +175,18 @@ class Literal(Number):
         return f"<Literal {self.number}>"
 
 
+class FateLiteral(Literal):
+    """A literal for Fate dice"""
+
+    def __repr__(self):
+        if self.number == -1:
+            return "<FateLiteral ->"
+        elif self.number == 0:
+            return "<FateLiteral 0>"
+        else:
+            return "<FateLiteral +>"
+
+
 class UnOp(Number):
     """Represents a unary operation."""
 
@@ -416,12 +428,14 @@ class Die(Number):  # part of diceexpr
         return []
 
     def _add_roll(self):
-        if self.size != "%" and self.size < 1:
+        if self.size != "%" and self.size != "F" and self.size < 1:
             raise errors.RollValueError("Cannot roll a 0-sided die.")
         if self._context:
             self._context.count_roll()
         if self.size == "%":
             n = Literal(random.randrange(10) * 10)
+        if self.size == "F":
+            n = FateLiteral(random.choice([-1, 0, 1])) # Technically it's -/0/+, but this also works with 4dF
         else:
             n = Literal(random.randrange(self.size) + 1)  # 200ns faster than randint(1, self._size)
         self.values.append(n)
