@@ -7,7 +7,8 @@
 [![codecov](https://codecov.io/gh/avrae/d20/branch/master/graph/badge.svg)](https://codecov.io/gh/avrae/d20)
 [![Documentation Status](https://readthedocs.org/projects/d20/badge/?version=latest)](https://d20.readthedocs.io/en/latest/start.html?badge=latest)
 
-
+> [!WARNING]
+> # The canonical repository for this project has moved to my personal account: https://github.com/zhudotexe/d20. This repository should be considered archival.
 
 
 A fast, powerful, and extensible dice engine for D&D, d20 systems, and any other system that needs dice!
